@@ -5,3 +5,6 @@ authors = ["notkild <notkild@gmail.com>"]
 
 [dependencies]
 clap = "*"
+
+[[bin]]
+name = "hupa"
