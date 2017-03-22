@@ -2,6 +2,22 @@
 
 #![deny(missing_docs)]
 
+extern crate app_dirs;
+#[macro_use]
+extern crate error_chain;
+
+mod error;
+
+pub use error::*;
+
+use app_dirs::{AppInfo, AppDataType};
+
+/// APP_INFO is used for the crate `app_dirs` to get config dir, data dir and else.
+pub const APP_INFO: AppInfo = AppInfo {
+    name: "hupa",
+    author: "notkild",
+};
+
 use std::path::{Path, PathBuf};
 
 /// Hupa is a class to handle a backup
@@ -34,7 +50,9 @@ impl Hupa {
     }
 
     /// Return the backup directory of the hupa
-    pub fn backup_dir(&self) -> PathBuf {
-        PathBuf::new()
+    pub fn backup_dir(&self) -> Result<PathBuf> {
+        let hupas = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas")?;
+        let hupas = hupas.join(&self.category).join(&self.sub_category);
+        Ok(hupas)
     }
 }

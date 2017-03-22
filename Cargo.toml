@@ -4,7 +4,9 @@ version = "0.1.0"
 authors = ["notkild <notkild@gmail.com>"]
 
 [dependencies]
-clap = "*"
+app_dirs = "1.1"
+clap = "2.21"
+error-chain = "0.10"
 
 [[bin]]
 name = "hupa"
