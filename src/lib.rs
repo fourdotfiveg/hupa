@@ -56,3 +56,31 @@ impl Hupa {
         Ok(hupas)
     }
 }
+
+#[cfg(test)]
+mod unit_tests {
+    use super::*;
+
+    fn vec_categories() -> Vec<(String, String)> {
+        vec![("test", "test"),
+             ("os", "linux"),
+             ("os", "osx"),
+             ("dotfiles", "nvim"),
+             ("dotfiles", "emacs"),
+             ("projects", "c"),
+             ("projects", "rust")]
+                .into_iter()
+                .map(|(a, b)| (a.to_owned(), b.to_owned()))
+                .collect()
+    }
+
+    #[test]
+    fn backup_dir_fn_test() {
+        let app_dir = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas").unwrap();
+        let app_dir = app_dir.to_string_lossy();
+        for (cat, sub) in vec_categories() {
+            assert_eq!(Hupa::new(&cat, &sub, "/").backup_dir().unwrap().to_string_lossy(),
+                       format!("{}/{}/{}", app_dir, cat, sub));
+        }
+    }
+}
