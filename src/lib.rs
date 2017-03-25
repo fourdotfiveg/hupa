@@ -11,6 +11,7 @@ mod error;
 pub use error::*;
 
 use app_dirs::{AppInfo, AppDataType};
+use std::fs;
 
 /// APP_INFO is used for the crate `app_dirs` to get config dir, data dir and else.
 pub const APP_INFO: AppInfo = AppInfo {
@@ -29,23 +30,23 @@ use std::path::{Path, PathBuf};
 /// `sub_category` is the sub category of the hupa, i.e if category is os, sub_category can be
 /// gentoo, fedora or windows
 ///
-/// `restore_dir` is the director of the backed up directory
+/// `origin_path` is the director of the backed up directory
 pub struct Hupa {
     category: String,
     sub_category: String,
-    restore_dir: PathBuf,
+    origin_path: PathBuf,
 }
 
 impl Hupa {
     /// Default constructor
     pub fn new<P: AsRef<Path>, S: AsRef<str>>(category: S,
                                               sub_category: S,
-                                              restore_dir: P)
+                                              origin_path: P)
                                               -> Hupa {
         Hupa {
             category: category.as_ref().to_owned(),
             sub_category: sub_category.as_ref().to_owned(),
-            restore_dir: restore_dir.as_ref().to_path_buf(),
+            origin_path: origin_path.as_ref().to_path_buf(),
         }
     }
 
@@ -55,6 +56,61 @@ impl Hupa {
         let hupas = hupas.join(&self.category).join(&self.sub_category);
         Ok(hupas)
     }
+
+    /// Backup hupa
+    pub fn backup(&self) -> Result<()> {
+        if !self.origin_path.exists() {
+            // TODO return error
+            return Ok(());
+        }
+        self.delete_backup()?;
+        fs::copy(&self.origin_path, self.backup_dir()?)?;
+        Ok(())
+    }
+
+    /// Restore hupa
+    pub fn restore(&self) -> Result<()> {
+        let backup_dir = self.backup_dir()?;
+        if !backup_dir.exists() {
+            // TODO return error
+            return Ok(());
+        }
+        self.delete_origin()?;
+        fs::copy(&backup_dir, &self.origin_path)?;
+        Ok(())
+    }
+
+    /// Delete backup
+    pub fn delete_backup(&self) -> Result<()> {
+        let backup_dir = self.backup_dir()?;
+        if backup_dir.exists() {
+            remove_all(&backup_dir)?;
+        }
+        Ok(())
+    }
+
+    /// Delete origin
+    pub fn delete_origin(&self) -> Result<()> {
+        if self.origin_path.exists() {
+            remove_all(&self.origin_path)?;
+        }
+        Ok(())
+    }
+}
+
+/// Remove file or directory from `path`
+///
+/// # Arguments
+///
+/// `path` - path to the file or directory to remove
+fn remove_all<P: AsRef<Path>>(path: P) -> Result<()> {
+    let path = path.as_ref();
+    if path.is_file() {
+        fs::remove_file(&path)?;
+    } else {
+        fs::remove_dir_all(&path)?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
