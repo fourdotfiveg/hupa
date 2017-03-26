@@ -20,6 +20,7 @@ use std::path::{Path, PathBuf};
 /// gentoo, fedora or windows
 ///
 /// `origin_path` is the director of the backed up directory
+#[derive(Clone, Debug)]
 pub struct Hupa {
     category: String,
     sub_category: String,
@@ -27,6 +28,7 @@ pub struct Hupa {
 }
 
 impl Hupa {
+    // TODO switch to vec for sub_category
     /// Default constructor
     pub fn new<P: AsRef<Path>, S: AsRef<str>>(category: S,
                                               sub_category: S,
@@ -37,6 +39,21 @@ impl Hupa {
             sub_category: sub_category.as_ref().to_owned(),
             origin_path: origin_path.as_ref().to_path_buf(),
         }
+    }
+
+    /// Get category of this hupa
+    pub fn get_category(&self) -> &str {
+        &self.category
+    }
+
+    /// Get sub category of this hupa
+    pub fn get_sub_category(&self) -> &str {
+        &self.sub_category
+    }
+
+    /// Get origin path of this hupa
+    pub fn get_origin(&self) -> &PathBuf {
+        &self.origin_path
     }
 
     /// Return the backup directory of the hupa
