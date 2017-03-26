@@ -20,7 +20,7 @@ use std::path::{Path, PathBuf};
 /// gentoo, fedora or windows
 ///
 /// `origin_path` is the director of the backed up directory
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Hupa {
     category: String,
     sub_category: String,
@@ -107,8 +107,6 @@ impl Hupa {
 }
 
 /// Remove file or directory from `path`
-///
-/// # Arguments
 ///
 /// `path` - path to the file or directory to remove
 fn remove_all<P: AsRef<Path>>(path: P) -> Result<()> {

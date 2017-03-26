@@ -15,6 +15,7 @@ mod metadata;
 
 pub use error::*;
 pub use hupa::*;
+pub use metadata::*;
 
 use app_dirs::AppInfo;
 

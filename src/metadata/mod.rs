@@ -4,5 +4,57 @@
 
 #[cfg(feature = "text-json")]
 mod json;
-#[cfg(feature = "text-json")]
-pub use json::*;
+
+use error::*;
+use hupa::Hupa;
+use std::io::{Read, Write};
+
+/// File format to use for metadata.
+pub enum MetadataFormat {
+    #[cfg(feature = "text-json")]
+    /// Read and write metadata to json format
+    Json,
+}
+
+/// Read metadata from stream
+///
+/// `stream` - Stream to read metadata
+///
+/// `format` - Define the format of the metadata, if sets to none, it will try all
+/// possibilities
+pub fn read_metadata<R: Read>(stream: &mut R, format: Option<MetadataFormat>) -> Result<Vec<Hupa>> {
+    let mut buffer = String::new();
+    stream.read_to_string(&mut buffer)?;
+    let hupas = match format {
+        #[cfg(feature = "text-json")]
+        Some(MetadataFormat::Json) => {
+            let json = ::json::parse(&buffer)?;
+            json::json_to_hupas(json)?
+        }
+        None => {
+            // TODO
+            Vec::new()
+        }
+    };
+    Ok(hupas)
+}
+
+/// Write metadata to a stream
+///
+/// `stream` - Stream to write metadata
+///
+/// `hupas` - Hupas to write metadata
+///
+/// `format` - Define the format in which the metadata will be
+pub fn write_metadata<W: Write>(stream: &mut W,
+                                hupas: &Vec<Hupa>,
+                                format: MetadataFormat)
+                                -> Result<()> {
+    let hupas = hupas.clone();
+    let to_write = match format {
+        #[cfg(feature = "text-json")]
+        MetadataFormat::Json => ::json::stringify(hupas).as_bytes().to_vec(),
+    };
+    stream.write_all(&to_write)?;
+    Ok(())
+}

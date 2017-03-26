@@ -1,8 +1,10 @@
 //! TODO
 
+use error::*;
 use json::JsonValue;
 use hupa::Hupa;
 
+/// Convert hupa to json
 impl Into<JsonValue> for Hupa {
     fn into(self) -> JsonValue {
         object! {
@@ -12,6 +14,23 @@ impl Into<JsonValue> for Hupa {
         }
     }
 }
+
+/// Convert json to hupas
+pub fn json_to_hupas(json: JsonValue) -> Result<Vec<Hupa>> {
+    let mut hupas = Vec::new();
+    if !json.is_array() {
+        // TODO error
+        return Ok(hupas);
+    }
+    for member in json.members() {
+        let category = member["category"].as_str().unwrap();
+        let sub_category = member["subCategory"].as_str().unwrap();
+        let origin = member["origin"].as_str().unwrap();
+        hupas.push(Hupa::new(category, sub_category, origin));
+    }
+    Ok(hupas)
+}
+
 
 #[cfg(test)]
 mod unit_tests {
@@ -47,7 +66,7 @@ mod unit_tests {
 
     #[test]
     fn test_hupas_to_json() {
-        let json = json::from(vec_of_hupas());
+        let json = json::stringify(vec_of_hupas());
         let mut output = String::new();
         output.push('[');
         for hupa in vec_of_hupas() {
@@ -56,5 +75,13 @@ mod unit_tests {
         }
         output.pop();
         output.push(']');
+        assert_eq!(json, output);
+    }
+
+    #[test]
+    fn test_json_to_hupas() {
+        let json = "[{\"category\":\"test1\",\"subCategory\":\"test2\",\"origin\":\"/\"},{\"category\":\"os\",\"subCategory\":\"gentoo\",\"origin\":\"/etc/portage\"},{\"category\":\"dotfiles\",\"subCategory\":\"all\",\"origin\":\"/dotfiles\"}]";
+        let hupas = json_to_hupas(::json::parse(json).unwrap()).unwrap();
+        assert_eq!(hupas, vec_of_hupas());
     }
 }
