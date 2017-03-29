@@ -16,27 +16,26 @@ use std::path::{Path, PathBuf};
 ///
 /// `category` is the category of the hupa, i.e category can be os, dotfiles or else
 ///
-/// `sub_category` is the sub category of the hupa, i.e if category is os, sub_category can be
+/// `sub_categories` is the sub category of the hupa, i.e if category is os, sub_categories can be
 /// gentoo, fedora or windows
 ///
 /// `origin_path` is the director of the backed up directory
 #[derive(Clone, Debug, PartialEq)]
 pub struct Hupa {
     category: String,
-    sub_category: String,
+    sub_categories: Vec<String>,
     origin_path: PathBuf,
 }
 
 impl Hupa {
-    // TODO switch to vec for sub_category
     /// Default constructor
     pub fn new<P: AsRef<Path>, S: AsRef<str>>(category: S,
-                                              sub_category: S,
+                                              sub_categories: &Vec<String>,
                                               origin_path: P)
                                               -> Hupa {
         Hupa {
             category: category.as_ref().to_owned(),
-            sub_category: sub_category.as_ref().to_owned(),
+            sub_categories: sub_categories.clone(),
             origin_path: origin_path.as_ref().to_path_buf(),
         }
     }
@@ -46,9 +45,9 @@ impl Hupa {
         &self.category
     }
 
-    /// Get sub category of this hupa
-    pub fn get_sub_category(&self) -> &str {
-        &self.sub_category
+    /// Get sub categories of this hupa
+    pub fn get_sub_categories(&self) -> &Vec<String> {
+        &self.sub_categories
     }
 
     /// Get origin path of this hupa
@@ -58,8 +57,11 @@ impl Hupa {
 
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> Result<PathBuf> {
-        let hupas = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas")?;
-        let hupas = hupas.join(&self.category).join(&self.sub_category);
+        let mut hupas = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas")?;
+        hupas = hupas.join(&self.category);
+        for sub_category in &self.sub_categories {
+            hupas = hupas.join(sub_category);
+        }
         Ok(hupas)
     }
 
@@ -123,16 +125,16 @@ fn remove_all<P: AsRef<Path>>(path: P) -> Result<()> {
 mod unit_tests {
     use super::*;
 
-    fn vec_categories() -> Vec<(String, String)> {
-        vec![("test", "test"),
-             ("os", "linux"),
-             ("os", "osx"),
-             ("dotfiles", "nvim"),
-             ("dotfiles", "emacs"),
-             ("projects", "c"),
-             ("projects", "rust")]
+    fn vec_categories() -> Vec<(String, Vec<String>)> {
+        vec![("test", vec!["test"]),
+             ("os", vec!["linux"]),
+             ("os", vec!["osx"]),
+             ("dotfiles", vec!["nvim"]),
+             ("dotfiles", vec!["emacs"]),
+             ("projects", vec!["c"]),
+             ("projects", vec!["rust"])]
                 .into_iter()
-                .map(|(a, b)| (a.to_owned(), b.to_owned()))
+                .map(|(a, b)| (a.to_owned(), b.iter().map(|s| s.to_string()).collect()))
                 .collect()
     }
 
@@ -141,8 +143,10 @@ mod unit_tests {
         let app_dir = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas").unwrap();
         let app_dir = app_dir.to_string_lossy();
         for (cat, sub) in vec_categories() {
+            let mut sub_str = sub.iter().map(|s| format!("{}/", s)).collect::<String>();
+            sub_str.pop();
             assert_eq!(Hupa::new(&cat, &sub, "/").backup_dir().unwrap().to_string_lossy(),
-                       format!("{}/{}/{}", app_dir, cat, sub));
+                       format!("{}/{}/{}", app_dir, cat, sub_str));
         }
     }
 }
