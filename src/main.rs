@@ -1,9 +1,16 @@
 //! Tool to backup and restore data
 
+extern crate app_dirs;
 #[macro_use]
 extern crate clap;
+extern crate hupa;
+
+use hupa::APP_INFO;
 
 use clap::{App, AppSettings, Arg, SubCommand};
+use hupa::Hupa;
+use std::fs::File;
+use std::path::PathBuf;
 
 fn main() {
     let matches = App::new("hupa")
@@ -16,7 +23,11 @@ fn main() {
                         .arg(Arg::with_name("file")
                                  .help("The file(s) to backup")
                                  .takes_value(true)
-                                 .multiple(true)))
+                                 .required(true))
+                        .arg(Arg::with_name("hupa")
+                                 .help("Set the hupa's name. Format: category/sub_categories[..]")
+                                 .takes_value(true)
+                                 .required(true)))
         .subcommand(SubCommand::with_name("remove")
                         .aliases(&["rm", "del"])
                         .about("Remove one or multiple hupa")
@@ -64,5 +75,43 @@ fn main() {
                                  .help("Path to the archive")
                                  .required(true)
                                  .takes_value(true)))
+        .subcommand(SubCommand::with_name("print").about("Print list of all hupas"))
         .get_matches();
+
+    let metadata_path = metadata_path();
+    let mut hupas = read_metadata(&metadata_path);
+
+    match matches.subcommand() {
+        ("add", Some(sub_m)) => {
+            let file = sub_m.value_of("file").unwrap();
+            let hupa = sub_m.value_of("hupa").unwrap();
+            let mut splitted = hupa.split("/");
+            let category = splitted.next().unwrap();
+            let mut sub_categories = Vec::new();
+            for sub_category in splitted {
+                sub_categories.push(sub_category.to_string());
+            }
+            let hupa = Hupa::new(category, &sub_categories, file);
+            hupas.push(hupa);
+            let mut f = File::create(&metadata_path).unwrap();
+            hupa::write_metadata(&mut f, &hupas, hupa::MetadataFormat::Json).unwrap();
+        }
+        ("print", _) => println!("{:?}", hupas),
+        (s, _) => println!("`{}` is not supported yet", s),
+    }
+}
+
+/// Get metadata path
+fn metadata_path() -> PathBuf {
+    // TODO write path in config
+    app_dirs::app_root(app_dirs::AppDataType::UserData, &APP_INFO).unwrap().join("metadata.json")
+}
+
+/// Read metadata
+fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
+    let mut f = match File::open(path) {
+        Ok(f) => f,
+        Err(_) => return Vec::new(),
+    };
+    hupa::read_metadata(&mut f, Some(hupa::MetadataFormat::Json)).unwrap()
 }
