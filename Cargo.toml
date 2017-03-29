@@ -2,6 +2,7 @@
 name = "hupa"
 version = "0.1.0"
 authors = ["notkild <notkild@gmail.com>"]
+build = "build.rs"
 
 [dependencies]
 app_dirs = "1.1"
