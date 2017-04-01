@@ -86,12 +86,12 @@ fn main() {
             let file = sub_m.value_of("file").unwrap();
             let hupa = sub_m.value_of("hupa").unwrap();
             let mut splitted = hupa.split("/");
-            let category = splitted.next().unwrap();
-            let mut sub_categories = Vec::new();
-            for sub_category in splitted {
-                sub_categories.push(sub_category.to_string());
+            let name = splitted.next().unwrap();
+            let mut categories = Vec::new();
+            for category in splitted {
+                categories.push(category.to_string());
             }
-            let hupa = Hupa::new(category, &sub_categories, file);
+            let hupa = Hupa::new(name, "", categories, file);
             hupas.push(hupa);
             let mut f = File::create(&metadata_path).unwrap();
             hupa::write_metadata(&mut f, &hupas, hupa::MetadataFormat::Json).unwrap();

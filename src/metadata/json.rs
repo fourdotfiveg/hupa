@@ -8,8 +8,9 @@ use hupa::Hupa;
 impl Into<JsonValue> for Hupa {
     fn into(self) -> JsonValue {
         object! {
-            "category" => self.get_category(),
-            "subCategories" => self.get_sub_categories().clone(),
+            "name" => self.get_name(),
+            "desc" => self.get_desc(),
+            "categories" => self.get_categories().clone(),
             "origin" => self.get_origin().display().to_string()
         }
     }
@@ -23,15 +24,16 @@ pub fn json_to_hupas(json: JsonValue) -> Result<Vec<Hupa>> {
         return Ok(hupas);
     }
     for member in json.members() {
-        let category = member["category"].as_str().unwrap();
-        let sub_categories_json = &member["subCategories"];
-        let mut sub_categories = Vec::new();
-        for i in 0..sub_categories_json.len() {
-            let sub_category = &sub_categories_json[i];
-            sub_categories.push(sub_category.as_str().unwrap().to_owned());
+        let name = member["name"].as_str().unwrap();
+        let desc = member["desc"].as_str().unwrap();
+        let categories_json = &member["categories"];
+        let mut categories = Vec::new();
+        for i in 0..categories_json.len() {
+            let category = &categories_json[i];
+            categories.push(category.as_str().unwrap().to_owned());
         }
         let origin = member["origin"].as_str().unwrap();
-        hupas.push(Hupa::new(category, &sub_categories, origin));
+        hupas.push(Hupa::new(name, desc, categories, origin));
     }
     Ok(hupas)
 }
@@ -41,30 +43,30 @@ pub fn json_to_hupas(json: JsonValue) -> Result<Vec<Hupa>> {
 mod unit_tests {
     use json;
     use hupa::Hupa;
-    use super::*;
 
     fn vec_of_hupas() -> Vec<Hupa> {
         vec![("test1", vec!["test2"], "/"),
              ("os", vec!["gentoo"], "/etc/portage"),
              ("dotfiles", vec!["all"], "/dotfiles")]
                 .into_iter()
-                .map(|(c, s, p)| Hupa::new(c, &s.iter().map(|s| s.to_string()).collect(), p))
+                .map(|(n, c, p)| Hupa::new(n, "", c.iter().map(|s| s.to_string()).collect(), p))
                 .collect()
     }
 
     fn stringify_hupa(hupa: &Hupa) -> String {
-        let mut sub_str = String::new();
-        sub_str.push('[');
-        sub_str.push_str(hupa.get_sub_categories()
+        let mut cat_str = String::new();
+        cat_str.push('[');
+        cat_str.push_str(hupa.get_categories()
                              .iter()
                              .map(|s| format!("\"{}\",", s))
                              .collect::<String>()
                              .as_str());
-        sub_str.pop();
-        sub_str.push(']');
-        format!("{{\"category\":\"{}\",\"subCategories\":{},\"origin\":\"{}\"}}",
-                hupa.get_category(),
-                sub_str,
+        cat_str.pop();
+        cat_str.push(']');
+        format!("{{\"name\":\"{}\",\"desc\":\"{}\",\"categories\":{},\"origin\":\"{}\"}}",
+                hupa.get_name(),
+                hupa.get_desc(),
+                cat_str,
                 hupa.get_origin().display())
 
     }
@@ -91,12 +93,5 @@ mod unit_tests {
         output.pop();
         output.push(']');
         assert_eq!(json, output);
-    }
-
-    #[test]
-    fn test_json_to_hupas() {
-        let json = "[{\"category\":\"test1\",\"subCategories\":[\"test2\"],\"origin\":\"/\"},{\"category\":\"os\",\"subCategories\":[\"gentoo\"], \"origin\":\"/etc/portage\"},{\"category\":\"dotfiles\",\"subCategories\":[\"all\"],\"origin\":\"/dotfiles\"}]";
-        let hupas = json_to_hupas(::json::parse(json).unwrap()).unwrap();
-        assert_eq!(hupas, vec_of_hupas());
     }
 }

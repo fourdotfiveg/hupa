@@ -14,40 +14,49 @@ use std::path::{Path, PathBuf};
 ///
 /// # Arguments
 ///
-/// `category` is the category of the hupa, i.e category can be os, dotfiles or else
+/// `name` - Name of the hupa, can be whatever the user wants
 ///
-/// `sub_categories` is the sub category of the hupa, i.e if category is os, sub_categories can be
-/// gentoo, fedora or windows
+/// `desc` - A small description of what the hupa is.
+///
+/// `categories` - All the categories of the hupa. e.j: 'os', 'dotfiles', etc...
 ///
 /// `origin_path` is the director of the backed up directory
 #[derive(Clone, Debug, PartialEq)]
 pub struct Hupa {
-    category: String,
-    sub_categories: Vec<String>,
+    name: String,
+    desc: String,
+    categories: Vec<String>,
     origin_path: PathBuf,
 }
 
 impl Hupa {
     /// Default constructor
-    pub fn new<P: AsRef<Path>, S: AsRef<str>>(category: S,
-                                              sub_categories: &Vec<String>,
+    pub fn new<P: AsRef<Path>, S: AsRef<str>>(name: S,
+                                              desc: S,
+                                              categories: Vec<String>,
                                               origin_path: P)
                                               -> Hupa {
         Hupa {
-            category: category.as_ref().to_owned(),
-            sub_categories: sub_categories.clone(),
+            name: name.as_ref().to_string(),
+            desc: desc.as_ref().to_string(),
+            categories: categories,
             origin_path: origin_path.as_ref().to_path_buf(),
         }
     }
 
-    /// Get category of this hupa
-    pub fn get_category(&self) -> &str {
-        &self.category
+    /// Get name of the hupa
+    pub fn get_name(&self) -> &str {
+        &self.name
     }
 
-    /// Get sub categories of this hupa
-    pub fn get_sub_categories(&self) -> &Vec<String> {
-        &self.sub_categories
+    /// Get description of the hupa
+    pub fn get_desc(&self) -> &str {
+        &self.desc
+    }
+
+    /// Get categories of this hupa
+    pub fn get_categories(&self) -> &Vec<String> {
+        &self.categories
     }
 
     /// Get origin path of this hupa
@@ -58,10 +67,10 @@ impl Hupa {
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> Result<PathBuf> {
         let mut hupas = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas")?;
-        hupas = hupas.join(&self.category);
-        for sub_category in &self.sub_categories {
-            hupas = hupas.join(sub_category);
+        for category in &self.categories {
+            hupas = hupas.join(category);
         }
+        hupas = hupas.join(&self.name);
         Ok(hupas)
     }
 
@@ -142,11 +151,14 @@ mod unit_tests {
     fn backup_dir_fn_test() {
         let app_dir = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas").unwrap();
         let app_dir = app_dir.to_string_lossy();
-        for (cat, sub) in vec_categories() {
-            let mut sub_str = sub.iter().map(|s| format!("{}/", s)).collect::<String>();
-            sub_str.pop();
-            assert_eq!(Hupa::new(&cat, &sub, "/").backup_dir().unwrap().to_string_lossy(),
-                       format!("{}/{}/{}", app_dir, cat, sub_str));
+        for (name, cat) in vec_categories() {
+            let mut cat_str = cat.iter().map(|s| format!("{}/", s)).collect::<String>();
+            cat_str.pop();
+            assert_eq!(Hupa::new(&name, &"".to_string(), cat.clone(), "/")
+                           .backup_dir()
+                           .unwrap()
+                           .to_string_lossy(),
+                       format!("{}/{}/{}", app_dir, cat_str, name));
         }
     }
 }
