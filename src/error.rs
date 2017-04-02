@@ -8,6 +8,11 @@ error_chain! {
     }
 
     errors {
+        /// Metadata is invalid
+        InvalidMetadata {
+            description("Metadata is invalid")
+            display("Metadata is invalid")
+        }
         /// Error when origin file is missing
         MissingBackup(p: String)  {
             description("Backup file is missing")

@@ -32,8 +32,11 @@ pub fn read_metadata<R: Read>(stream: &mut R, format: Option<MetadataFormat>) ->
             json::json_to_hupas(json)?
         }
         None => {
-            // TODO
-            Vec::new()
+            if let Ok(json) = ::json::parse(&buffer) {
+                json::json_to_hupas(json)?
+            } else {
+                Vec::new()
+            }
         }
     };
     Ok(hupas)

@@ -1,4 +1,4 @@
-//! TODO
+//! Module to create json file from hupas and to parse json to hupas
 
 use error::*;
 use json::JsonValue;
@@ -20,8 +20,7 @@ impl Into<JsonValue> for Hupa {
 pub fn json_to_hupas(json: JsonValue) -> Result<Vec<Hupa>> {
     let mut hupas = Vec::new();
     if !json.is_array() {
-        // TODO error
-        return Ok(hupas);
+        bail!(ErrorKind::InvalidMetadata);
     }
     for member in json.members() {
         let name = member["name"].as_str().unwrap();
