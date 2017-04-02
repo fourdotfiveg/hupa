@@ -59,9 +59,24 @@ impl Hupa {
         &self.categories
     }
 
+    /// Get categories of this hupa in string format
+    pub fn get_categories_str(&self) -> String {
+        let mut categories = self.categories
+            .iter()
+            .map(|s| format!("{}/", s))
+            .collect::<String>();
+        categories.pop();
+        categories
+    }
+
     /// Get origin path of this hupa
     pub fn get_origin(&self) -> &PathBuf {
         &self.origin_path
+    }
+
+    /// Get hupa path from parent dir
+    pub fn get_hupa_path(&self) -> String {
+        format!("{}/{}", self.get_categories_str(), self.name)
     }
 
     /// Return the backup directory of the hupa

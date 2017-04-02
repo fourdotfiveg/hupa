@@ -8,9 +8,9 @@ extern crate hupa;
 use hupa::APP_INFO;
 
 use clap::{App, AppSettings, Arg, SubCommand};
-use hupa::Hupa;
+use hupa::*;
 use std::fs::File;
-use std::io::{BufRead, Read, Write};
+use std::io::Write;
 use std::path::PathBuf;
 
 fn main() {
@@ -98,11 +98,22 @@ fn main() {
                 } else if idx == hupas.len() + 1 {
                     println!("Action cancelled");
                     break;
+                } else {
+                    hupas.remove(idx - 1);
+                    save_hupas(&metadata_path, &hupas);
+                    break;
                 }
-                hupas.remove(idx - 1);
             }
         }
-        ("print", _) => println!("{:?}", hupas),
+        ("print", _) => {
+            for hupa in &hupas {
+                println!("{} ({}) -> {}: \n{}\n",
+                         hupa.get_name(),
+                         hupa.get_hupa_path(),
+                         hupa.get_origin().display(),
+                         hupa.get_desc());
+            }
+        }
         (s, _) => println!("`{}` is not supported yet", s),
     }
 }
