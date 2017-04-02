@@ -78,8 +78,7 @@ impl Hupa {
     pub fn backup(&self) -> Result<()> {
         let backup_dir = self.backup_dir()?;
         if !self.origin_path.exists() {
-            // TODO return error
-            return Ok(());
+            bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
         }
         self.delete_backup()?;
         fs::create_dir_all(&backup_dir)?;
@@ -91,8 +90,7 @@ impl Hupa {
     pub fn restore(&self) -> Result<()> {
         let backup_dir = self.backup_dir()?;
         if !backup_dir.exists() {
-            // TODO return error
-            return Ok(());
+            bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
         }
         self.delete_origin()?;
         fs::copy(&backup_dir, &self.origin_path)?;
