@@ -10,6 +10,7 @@ use hupa::APP_INFO;
 use clap::{App, AppSettings, Arg, SubCommand};
 use hupa::Hupa;
 use std::fs::File;
+use std::io::{BufRead, Read, Write};
 use std::path::PathBuf;
 
 fn main() {
@@ -18,16 +19,7 @@ fn main() {
         .author("notkild <notkild@gmail.com>")
         .version(crate_version!())
         .setting(AppSettings::SubcommandRequired)
-        .subcommand(SubCommand::with_name("add")
-                        .about("Add a new file/directory to backup")
-                        .arg(Arg::with_name("file")
-                                 .help("The file(s) to backup")
-                                 .takes_value(true)
-                                 .required(true))
-                        .arg(Arg::with_name("hupa")
-                                 .help("Set the hupa's name. Format: category/sub_categories[..]")
-                                 .takes_value(true)
-                                 .required(true)))
+        .subcommand(SubCommand::with_name("add").about("Add a new file/directory to backup"))
         .subcommand(SubCommand::with_name("remove")
                         .aliases(&["rm", "del"])
                         .about("Remove one or multiple hupa")
@@ -82,19 +74,17 @@ fn main() {
     let mut hupas = read_metadata(&metadata_path);
 
     match matches.subcommand() {
-        ("add", Some(sub_m)) => {
-            let file = sub_m.value_of("file").unwrap();
-            let hupa = sub_m.value_of("hupa").unwrap();
-            let mut splitted = hupa.split("/");
-            let name = splitted.next().unwrap();
-            let mut categories = Vec::new();
-            for category in splitted {
-                categories.push(category.to_string());
-            }
-            let hupa = Hupa::new(name, "", categories, file);
+        ("add", _) => {
+            let name = read_line("Name: ");
+            let desc = read_line("Description: ");
+            let categories = read_line("Categories (ex: os/linux): ");
+            let origin = read_line("Origin path: ");
+            let hupa = Hupa::new(name,
+                                 desc,
+                                 categories.split('/').map(|s| s.to_string()).collect(),
+                                 origin);
             hupas.push(hupa);
-            let mut f = File::create(&metadata_path).unwrap();
-            hupa::write_metadata(&mut f, &hupas, hupa::MetadataFormat::Json).unwrap();
+            save_hupas(&metadata_path, &hupas);
         }
         ("print", _) => println!("{:?}", hupas),
         (s, _) => println!("`{}` is not supported yet", s),
@@ -114,4 +104,23 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
         Err(_) => return Vec::new(),
     };
     hupa::read_metadata(&mut f, Some(hupa::MetadataFormat::Json)).unwrap()
+}
+
+/// Read line
+fn read_line(print: &str) -> String {
+    let stdin = ::std::io::stdin();
+    let mut stdout = ::std::io::stdout();
+    stdout.write(print.as_bytes()).unwrap();
+    stdout.flush().unwrap();
+    let mut buf = String::new();
+    while buf.is_empty() {
+        stdin.read_line(&mut buf).unwrap();
+    }
+    buf.trim().to_string()
+}
+
+/// Save hupas
+fn save_hupas(path: &PathBuf, hupas: &Vec<Hupa>) {
+    let mut f = File::create(path).unwrap();
+    hupa::write_metadata(&mut f, &hupas, hupa::MetadataFormat::Json).unwrap();
 }
