@@ -22,11 +22,7 @@ fn main() {
         .subcommand(SubCommand::with_name("add").about("Add a new file/directory to backup"))
         .subcommand(SubCommand::with_name("remove")
                         .aliases(&["rm", "del"])
-                        .about("Remove one or multiple hupa")
-                        .arg(Arg::with_name("hupa")
-                                 .help("Name of the hupa to remove")
-                                 .takes_value(true)
-                                 .multiple(true)))
+                        .about("Remove one or multiple hupa"))
         .subcommand(SubCommand::with_name("backup")
                         .about("Backup hupa(s)")
                         .arg(Arg::with_name("all")
@@ -86,6 +82,26 @@ fn main() {
             hupas.push(hupa);
             save_hupas(&metadata_path, &hupas);
         }
+        ("remove", _) => {
+            for (i, hupa) in hupas.iter().enumerate() {
+                println!("[{}] {}: {}", i + 1, hupa.get_name(), hupa.get_desc());
+            }
+            println!("[{}] Cancel", hupas.len() + 1);
+            loop {
+                let idx = read_line_parse::<usize>(&format!("Hupa to remove [1-{}]: ",
+                                                            hupas.len() + 1),
+                                                   &format!("You should enter a number between 1 and {}",
+                                                            hupas.len() + 1));
+                if idx == 0 || idx > hupas.len() + 1 {
+                    println!("This is not in the range");
+                    continue;
+                } else if idx == hupas.len() + 1 {
+                    println!("Action cancelled");
+                    break;
+                }
+                hupas.remove(idx - 1);
+            }
+        }
         ("print", _) => println!("{:?}", hupas),
         (s, _) => println!("`{}` is not supported yet", s),
     }
@@ -110,13 +126,26 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
 fn read_line(print: &str) -> String {
     let stdin = ::std::io::stdin();
     let mut stdout = ::std::io::stdout();
-    stdout.write(print.as_bytes()).unwrap();
-    stdout.flush().unwrap();
     let mut buf = String::new();
     while buf.is_empty() {
+        stdout.write(print.as_bytes()).unwrap();
+        stdout.flush().unwrap();
         stdin.read_line(&mut buf).unwrap();
+        buf = buf.trim().to_string()
     }
-    buf.trim().to_string()
+    buf
+}
+
+/// Read line parse
+fn read_line_parse<T: ::std::str::FromStr>(print: &str, err_msg: &str) -> T {
+    loop {
+        let readed = read_line(print);
+        if let Ok(r) = readed.parse::<T>() {
+            return r;
+        } else {
+            println!("{}", err_msg)
+        }
+    }
 }
 
 /// Save hupas
