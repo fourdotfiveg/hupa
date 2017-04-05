@@ -127,13 +127,13 @@ fn main() {
                 if sub_m.is_present("size") {
                     size_b = format!(" ({})",
                                      hupa.get_backup_size()
-                                         .unwrap()
+                                         .unwrap_or(0)
                                          .file_size(DEFAULT_FSO)
                                          .unwrap())
                             .bold();
                     size_o = format!(" ({})",
                                      hupa.get_origin_size()
-                                         .unwrap()
+                                         .unwrap_or(0)
                                          .file_size(DEFAULT_FSO)
                                          .unwrap())
                             .bold();
