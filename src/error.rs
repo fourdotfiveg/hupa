@@ -2,8 +2,9 @@
 
 error_chain! {
     foreign_links {
-        AppDirs(::app_dirs::AppDirsError) #[doc = "Error for app_dirs crate"];
-        Json(::json::Error) #[cfg(feature = "text-json")] #[doc = "Error for json crate"];
+        AppDirs(::app_dirs::AppDirsError) #[doc = "Error from app_dirs crate"];
+        FsExtra(::fs_extra::error::Error) #[doc = "Error from fs_extra crate"];
+        Json(::json::Error) #[cfg(feature = "text-json")] #[doc = "Error from json crate"];
         Io(::std::io::Error) #[doc = "IO error"];
     }
 
