@@ -3,6 +3,7 @@
 #![deny(missing_docs)]
 
 extern crate app_dirs;
+extern crate copy_dir;
 #[macro_use]
 extern crate error_chain;
 #[cfg(feature="text-json")]

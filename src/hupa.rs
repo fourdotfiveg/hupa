@@ -6,6 +6,7 @@
 
 use APP_INFO;
 use app_dirs::{self, AppDataType};
+use copy_dir::copy_dir;
 use error::*;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -91,8 +92,8 @@ impl Hupa {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
         }
         self.delete_backup()?;
-        fs::create_dir_all(&backup_dir)?;
-        fs::copy(&self.origin_path, &backup_dir)?;
+        fs::create_dir_all(&backup_dir.parent().unwrap())?;
+        copy_dir(&self.origin_path, &backup_dir)?;
         Ok(())
     }
 
@@ -103,7 +104,7 @@ impl Hupa {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
         }
         self.delete_origin()?;
-        fs::copy(&backup_dir, &self.origin_path)?;
+        copy_dir(&backup_dir, &self.origin_path)?;
         Ok(())
     }
 
