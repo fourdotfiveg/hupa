@@ -8,7 +8,7 @@ use APP_INFO;
 use app_dirs::{self, AppDataType};
 use error::*;
 use fs_extra::copy_items;
-use fs_extra::dir::CopyOptions;
+use fs_extra::dir::{self, CopyOptions};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -84,6 +84,16 @@ impl Hupa {
         }
         hupas = hupas.join(&self.name);
         Ok(hupas)
+    }
+
+    /// Get the backup size
+    pub fn get_backup_size(&self) -> Result<u64> {
+        dir::get_size(self.backup_dir()?).map_err(|e| e.into())
+    }
+
+    /// Get the origin size
+    pub fn get_origin_size(&self) -> Result<u64> {
+        dir::get_size(&self.origin_path).map_err(|e| e.into())
     }
 
     /// Backup hupa

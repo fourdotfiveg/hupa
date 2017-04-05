@@ -4,12 +4,15 @@ extern crate app_dirs;
 #[macro_use]
 extern crate clap;
 extern crate colored;
+extern crate humansize;
 extern crate hupa;
 
 use hupa::APP_INFO;
 
 use clap::{App, AppSettings, Arg, SubCommand};
 use colored::*;
+use humansize::{FileSize, file_size_opts};
+use humansize::file_size_opts::FileSizeOpts;
 use hupa::*;
 use std::fs::File;
 use std::io::Write;
@@ -165,7 +168,18 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
 fn backup(hupas: &[Hupa]) {
     let mut stdout = ::std::io::stdout();
     for hupa in hupas {
-        write!(stdout, "Backing up {}... ", hupa.get_name().yellow()).unwrap();
+        let fso = FileSizeOpts {
+            space: false,
+            ..file_size_opts::DECIMAL
+        };
+        write!(stdout,
+               "Backing up {} ({})... ",
+               hupa.get_name().yellow(),
+               hupa.get_origin_size()
+                   .unwrap_or(0)
+                   .file_size(fso)
+                   .unwrap())
+                .unwrap();
         stdout.flush().unwrap();
         match hupa.backup() {
             Ok(_) => {
