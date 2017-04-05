@@ -98,25 +98,28 @@ impl Hupa {
 
     /// Backup hupa
     pub fn backup(&self) -> Result<()> {
+        // TODO backup_with_progress
         let backup_dir = self.backup_dir()?;
         if !self.origin_path.exists() {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
         }
-        // TODO add more options
+        // TODO add overwrite and skip exist
         self.delete_backup()?;
-        fs::create_dir_all(&backup_dir)?;
-        copy_items(&vec![&self.origin_path], &backup_dir, &CopyOptions::new())?;
+        fs::create_dir_all(&backup_dir.parent().unwrap())?;
+        copy_all(&self.origin_path, &backup_dir)?;
         Ok(())
     }
 
     /// Restore hupa
     pub fn restore(&self) -> Result<()> {
+        // TODO restore_with_progress
         let backup_dir = self.backup_dir()?;
         if !backup_dir.exists() {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
         }
+        // TODO add overwrite and skip exist
         self.delete_origin()?;
-        copy_items(&vec![&backup_dir], &self.origin_path, &CopyOptions::new())?;
+        copy_all(&backup_dir, &self.origin_path)?;
         Ok(())
     }
 
@@ -136,6 +139,22 @@ impl Hupa {
         }
         Ok(())
     }
+}
+
+/// Copy file or directory to path
+///
+/// `from` - File or directory to copy
+///
+/// `to` - Destination path
+fn copy_all<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
+    let from = from.as_ref();
+    if from.is_file() {
+        fs::copy(from, to)?;
+    } else if from.is_dir() {
+        fs::create_dir_all(&to)?;
+        dir::copy(from, to, &CopyOptions::new())?;
+    }
+    Ok(())
 }
 
 /// Remove file or directory from `path`

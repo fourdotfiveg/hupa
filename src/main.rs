@@ -171,6 +171,30 @@ fn main() {
                 // TODO put prompt for choosing
             }
         }
+        ("restore", Some(sub_m)) => {
+            if sub_m.is_present("all") {
+                restore(&hupas);
+            } else if let Some(hupas_names) = sub_m.values_of("hupa") {
+                let mut to_restore = Vec::new();
+                for hupa_name in hupas_names {
+                    let mut found = false;
+                    for hupa in &hupas {
+                        if hupa.get_name() == hupa_name {
+                            to_restore.push(hupa.clone());
+                            found = true;
+                            break;
+                        }
+                    }
+                    if !found {
+                        println!("Can't find hupa for name {}", hupa_name);
+                    }
+                }
+                restore(&to_restore);
+            } else {
+                // TODO put prompt for choosing
+            }
+
+        }
         (s, _) => println!("`{}` is not supported yet", s),
     }
 }
@@ -194,6 +218,7 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
 
 /// Backup hupas with interface
 fn backup(hupas: &[Hupa]) {
+    // TODO backup with progress
     let mut stdout = ::std::io::stdout();
     for hupa in hupas {
         write!(stdout,
@@ -206,6 +231,35 @@ fn backup(hupas: &[Hupa]) {
                 .unwrap();
         stdout.flush().unwrap();
         match hupa.backup() {
+            Ok(_) => {
+                write!(stdout, "{}", "OK!".green()).unwrap();
+                stdout.flush().unwrap();
+            }
+            Err(e) => {
+                write!(stdout, "{}", "Error: ".red()).unwrap();
+                stdout.write(e.description().as_bytes()).unwrap();
+                stdout.flush().unwrap();
+            }
+        }
+        stdout.write(b"\n").unwrap();
+        stdout.flush().unwrap();
+    }
+}
+
+/// Restore hupas with interface
+fn restore(hupas: &[Hupa]) {
+    let mut stdout = ::std::io::stdout();
+    for hupa in hupas {
+        write!(stdout,
+               "Restoring {} ({})... ",
+               hupa.get_name().yellow(),
+               hupa.get_backup_size()
+                   .unwrap_or(0)
+                   .file_size(DEFAULT_FSO)
+                   .unwrap())
+                .unwrap();
+        stdout.flush().unwrap();
+        match hupa.restore() {
             Ok(_) => {
                 write!(stdout, "{}", "OK!".green()).unwrap();
                 stdout.flush().unwrap();
