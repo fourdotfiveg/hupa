@@ -6,6 +6,7 @@ dependencies = [
  "clap 2.21.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "colored 1.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "fs_extra 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.11.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -107,6 +108,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "backtrace 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "fs_extra"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "gcc"
@@ -217,6 +223,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum colored 1.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "28ac9262ecb0c06ced80088dad74d813458a909016b554fbf9199177acec697a"
 "checksum dbghelp-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "97590ba53bcb8ac28279161ca943a924d1fd4a8fb3fa63302591647c4fc5b850"
 "checksum error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d9435d864e017c3c6afeac1654189b06cdb491cf2ff73dbf0d73b0f292f42ff8"
+"checksum fs_extra 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d812bdfa1a960a37ad4e61c8fc4078a74c711f607ed98c587055274a2a7c9d4c"
 "checksum gcc 0.3.45 (registry+https://github.com/rust-lang/crates.io-index)" = "40899336fb50db0c78710f53e87afc54d8c7266fb76262fecc78ca1a7f09deae"
 "checksum json 0.11.6 (registry+https://github.com/rust-lang/crates.io-index)" = "27600e8bb3b71bcc6213fb36b66b8dce60adc17a624257687ef5d1d4facafba7"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"

@@ -95,7 +95,7 @@ fn main() {
                                                    &format!("You should enter a number between 1 and {}",
                                                             hupas.len() + 1));
                 if idx == 0 || idx > hupas.len() + 1 {
-                    println!("This is not in the range");
+                    println!("{}", "This is not in the range".red());
                     continue;
                 } else if idx == hupas.len() + 1 {
                     println!("Action cancelled");
@@ -115,6 +115,29 @@ fn main() {
                          "<->".bold(),
                          hupa.get_origin().display().to_string().bold(),
                          hupa.get_desc().dimmed());
+            }
+        }
+        ("backup", Some(sub_m)) => {
+            if sub_m.is_present("all") {
+                backup(&hupas);
+            } else if let Some(hupas_names) = sub_m.values_of("hupa") {
+                let mut to_backup = Vec::new();
+                for hupa_name in hupas_names {
+                    let mut found = false;
+                    for hupa in &hupas {
+                        if hupa.get_name() == hupa_name {
+                            to_backup.push(hupa.clone());
+                            found = true;
+                            break;
+                        }
+                    }
+                    if !found {
+                        println!("Can't find hupa for name {}", hupa_name);
+                    }
+                }
+                backup(&to_backup);
+            } else {
+                // TODO put prompt for choosing
             }
         }
         (s, _) => println!("`{}` is not supported yet", s),
@@ -138,6 +161,28 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
     hupa::read_metadata(&mut f, Some(hupa::MetadataFormat::Json)).unwrap()
 }
 
+/// Backup hupas with interface
+fn backup(hupas: &[Hupa]) {
+    let mut stdout = ::std::io::stdout();
+    for hupa in hupas {
+        write!(stdout, "Backing up {}... ", hupa.get_name().yellow()).unwrap();
+        stdout.flush().unwrap();
+        match hupa.backup() {
+            Ok(_) => {
+                write!(stdout, "{}", "OK!".green()).unwrap();
+                stdout.flush().unwrap();
+            }
+            Err(e) => {
+                write!(stdout, "{}", "Error: ".red()).unwrap();
+                stdout.write(e.description().as_bytes()).unwrap();
+                stdout.flush().unwrap();
+            }
+        }
+        stdout.write(b"\n").unwrap();
+        stdout.flush().unwrap();
+    }
+}
+
 /// Read line
 fn read_line(print: &str) -> String {
     let stdin = ::std::io::stdin();
@@ -159,7 +204,7 @@ fn read_line_parse<T: ::std::str::FromStr>(print: &str, err_msg: &str) -> T {
         if let Ok(r) = readed.parse::<T>() {
             return r;
         } else {
-            println!("{}", err_msg)
+            println!("{}", err_msg.red())
         }
     }
 }
