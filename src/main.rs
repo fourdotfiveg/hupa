@@ -18,6 +18,11 @@ use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
 
+const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
+    space: false,
+    ..file_size_opts::DECIMAL
+};
+
 fn main() {
     let matches = App::new("hupa")
         .about("Hupa is a tool to backup and restore data")
@@ -68,7 +73,12 @@ fn main() {
                                  .help("Path to the archive")
                                  .required(true)
                                  .takes_value(true)))
-        .subcommand(SubCommand::with_name("print").about("Print list of all hupas"))
+        .subcommand(SubCommand::with_name("print")
+                        .about("Print list of all hupas")
+                        .arg(Arg::with_name("size")
+                                 .help("Show files sizes")
+                                 .short("s")
+                                 .long("size")))
         .get_matches();
 
     let metadata_path = metadata_path();
@@ -110,13 +120,31 @@ fn main() {
                 }
             }
         }
-        ("print", _) => {
+        ("print", Some(sub_m)) => {
             for hupa in &hupas {
-                println!("{}/{} {} {}: \n{}\n",
+                let mut size_b = ColoredString::default();
+                let mut size_o = ColoredString::default();
+                if sub_m.is_present("size") {
+                    size_b = format!(" ({})",
+                                     hupa.get_backup_size()
+                                         .unwrap()
+                                         .file_size(DEFAULT_FSO)
+                                         .unwrap())
+                            .bold();
+                    size_o = format!(" ({})",
+                                     hupa.get_origin_size()
+                                         .unwrap()
+                                         .file_size(DEFAULT_FSO)
+                                         .unwrap())
+                            .bold();
+                }
+                println!("{}/{}{} {} {}{}: \n{}\n",
                          hupa.get_categories_str().bold(),
                          hupa.get_name().yellow().bold(),
+                         size_b,
                          "<->".bold(),
                          hupa.get_origin().display().to_string().bold(),
+                         size_o,
                          hupa.get_desc().dimmed());
             }
         }
@@ -168,16 +196,12 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
 fn backup(hupas: &[Hupa]) {
     let mut stdout = ::std::io::stdout();
     for hupa in hupas {
-        let fso = FileSizeOpts {
-            space: false,
-            ..file_size_opts::DECIMAL
-        };
         write!(stdout,
                "Backing up {} ({})... ",
                hupa.get_name().yellow(),
                hupa.get_origin_size()
                    .unwrap_or(0)
-                   .file_size(fso)
+                   .file_size(DEFAULT_FSO)
                    .unwrap())
                 .unwrap();
         stdout.flush().unwrap();
