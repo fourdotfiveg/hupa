@@ -3,11 +3,13 @@
 extern crate app_dirs;
 #[macro_use]
 extern crate clap;
+extern crate colored;
 extern crate hupa;
 
 use hupa::APP_INFO;
 
 use clap::{App, AppSettings, Arg, SubCommand};
+use colored::*;
 use hupa::*;
 use std::fs::File;
 use std::io::Write;
@@ -107,11 +109,12 @@ fn main() {
         }
         ("print", _) => {
             for hupa in &hupas {
-                println!("{} ({}) -> {}: \n{}\n",
-                         hupa.get_name(),
-                         hupa.get_hupa_path(),
-                         hupa.get_origin().display(),
-                         hupa.get_desc());
+                println!("{}/{} {} {}: \n{}\n",
+                         hupa.get_categories_str().bold(),
+                         hupa.get_name().yellow().bold(),
+                         "<->".bold(),
+                         hupa.get_origin().display().to_string().bold(),
+                         hupa.get_desc().dimmed());
             }
         }
         (s, _) => println!("`{}` is not supported yet", s),
@@ -121,7 +124,9 @@ fn main() {
 /// Get metadata path
 fn metadata_path() -> PathBuf {
     // TODO write path in config
-    app_dirs::app_root(app_dirs::AppDataType::UserData, &APP_INFO).unwrap().join("metadata.json")
+    app_dirs::app_root(app_dirs::AppDataType::UserData, &APP_INFO)
+        .unwrap()
+        .join("metadata.json")
 }
 
 /// Read metadata

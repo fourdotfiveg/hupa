@@ -6,6 +6,7 @@ build = "build.rs"
 
 [dependencies]
 app_dirs = "1.1"
+colored = "1.4"
 clap = "2.21"
 error-chain = "0.10"
 json = { version = "0.11", optional = true }

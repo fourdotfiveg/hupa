@@ -74,11 +74,6 @@ impl Hupa {
         &self.origin_path
     }
 
-    /// Get hupa path from parent dir
-    pub fn get_hupa_path(&self) -> String {
-        format!("{}/{}", self.get_categories_str(), self.name)
-    }
-
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> Result<PathBuf> {
         let mut hupas = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas")?;
@@ -165,7 +160,9 @@ mod unit_tests {
         let app_dir = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas").unwrap();
         let app_dir = app_dir.to_string_lossy();
         for (name, cat) in vec_categories() {
-            let mut cat_str = cat.iter().map(|s| format!("{}/", s)).collect::<String>();
+            let mut cat_str = cat.iter()
+                .map(|s| format!("{}/", s))
+                .collect::<String>();
             cat_str.pop();
             assert_eq!(Hupa::new(&name, &"".to_string(), cat.clone(), "/")
                            .backup_dir()
