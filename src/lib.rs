@@ -5,12 +5,12 @@
 extern crate app_dirs;
 #[macro_use]
 extern crate error_chain;
-extern crate fs_extra;
 #[cfg(feature="text-json")]
 #[macro_use]
 extern crate json;
 
 mod error;
+mod fs_extra;
 mod hupa;
 mod metadata;
 

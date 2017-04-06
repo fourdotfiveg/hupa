@@ -7,8 +7,7 @@
 use APP_INFO;
 use app_dirs::{self, AppDataType};
 use error::*;
-use fs_extra::copy_items;
-use fs_extra::dir::{self, CopyOptions};
+use fs_extra::{copy_dir, get_size};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -88,12 +87,12 @@ impl Hupa {
 
     /// Get the backup size
     pub fn get_backup_size(&self) -> Result<u64> {
-        dir::get_size(self.backup_dir()?).map_err(|e| e.into())
+        get_size(self.backup_dir()?).map_err(|e| e.into())
     }
 
     /// Get the origin size
     pub fn get_origin_size(&self) -> Result<u64> {
-        dir::get_size(&self.origin_path).map_err(|e| e.into())
+        get_size(&self.origin_path).map_err(|e| e.into())
     }
 
     /// Backup hupa
@@ -106,6 +105,7 @@ impl Hupa {
         // TODO add overwrite and skip exist
         self.delete_backup()?;
         fs::create_dir_all(&backup_dir.parent().unwrap())?;
+        // TODO work on destination
         copy_all(&self.origin_path, &backup_dir)?;
         Ok(())
     }
@@ -152,7 +152,7 @@ fn copy_all<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
         fs::copy(from, to)?;
     } else if from.is_dir() {
         fs::create_dir_all(&to)?;
-        dir::copy(from, to, &CopyOptions::new())?;
+        copy_dir(from, to.as_ref())?;
     }
     Ok(())
 }
