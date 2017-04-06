@@ -79,6 +79,16 @@ fn main() {
                                  .help("Show files sizes")
                                  .short("s")
                                  .long("size")))
+        .subcommand(SubCommand::with_name("clean")
+                        .about("Clean hupa(s)")
+                        .arg(Arg::with_name("all")
+                                 .help("Clean all hupas")
+                                 .short("a")
+                                 .long("all"))
+                        .arg(Arg::with_name("hupa")
+                                 .help("Hupa(s) to clean")
+                                 .takes_value(true)
+                                 .multiple(true)))
         .get_matches();
 
     let metadata_path = metadata_path();
@@ -152,21 +162,8 @@ fn main() {
             if sub_m.is_present("all") {
                 backup(&hupas);
             } else if let Some(hupas_names) = sub_m.values_of("hupa") {
-                let mut to_backup = Vec::new();
-                for hupa_name in hupas_names {
-                    let mut found = false;
-                    for hupa in &hupas {
-                        if hupa.get_name() == hupa_name {
-                            to_backup.push(hupa.clone());
-                            found = true;
-                            break;
-                        }
-                    }
-                    if !found {
-                        println!("Can't find hupa for name {}", hupa_name);
-                    }
-                }
-                backup(&to_backup);
+                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
+                backup(&resolve_names(&hupas_names, &hupas));
             } else {
                 // TODO put prompt for choosing
             }
@@ -175,25 +172,21 @@ fn main() {
             if sub_m.is_present("all") {
                 restore(&hupas);
             } else if let Some(hupas_names) = sub_m.values_of("hupa") {
-                let mut to_restore = Vec::new();
-                for hupa_name in hupas_names {
-                    let mut found = false;
-                    for hupa in &hupas {
-                        if hupa.get_name() == hupa_name {
-                            to_restore.push(hupa.clone());
-                            found = true;
-                            break;
-                        }
-                    }
-                    if !found {
-                        println!("Can't find hupa for name {}", hupa_name);
-                    }
-                }
-                restore(&to_restore);
+                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
+                restore(&resolve_names(&hupas_names, &hupas));
             } else {
                 // TODO put prompt for choosing
             }
 
+        }
+        ("clean", Some(sub_m)) => {
+            if sub_m.is_present("all") {
+                clean(&hupas);
+            } else if let Some(hupas_names) = sub_m.values_of("hupa") {
+                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
+                clean(&resolve_names(&hupas_names, &hupas));
+            } else {
+            }
         }
         (s, _) => println!("`{}` is not supported yet", s),
     }
@@ -205,6 +198,25 @@ fn metadata_path() -> PathBuf {
     app_dirs::app_root(app_dirs::AppDataType::UserData, &APP_INFO)
         .unwrap()
         .join("metadata.json")
+}
+
+/// Return list of hupa from hupas_names
+fn resolve_names(hupas_names: &[String], hupas: &[Hupa]) -> Vec<Hupa> {
+    let mut resolved = Vec::new();
+    for hupa_name in hupas_names {
+        let mut found = false;
+        for hupa in hupas {
+            if hupa.get_name() == hupa_name {
+                resolved.push(hupa.clone());
+                found = true;
+                break;
+            }
+        }
+        if !found {
+            println!("Can't find hupa for name {}", hupa_name);
+        }
+    }
+    resolved
 }
 
 /// Read metadata
@@ -260,6 +272,35 @@ fn restore(hupas: &[Hupa]) {
                 .unwrap();
         stdout.flush().unwrap();
         match hupa.restore() {
+            Ok(_) => {
+                write!(stdout, "{}", "OK!".green()).unwrap();
+                stdout.flush().unwrap();
+            }
+            Err(e) => {
+                write!(stdout, "{}", "Error: ".red()).unwrap();
+                stdout.write(e.description().as_bytes()).unwrap();
+                stdout.flush().unwrap();
+            }
+        }
+        stdout.write(b"\n").unwrap();
+        stdout.flush().unwrap();
+    }
+}
+
+/// Clean hupas with interface
+fn clean(hupas: &[Hupa]) {
+    let mut stdout = ::std::io::stdout();
+    for hupa in hupas {
+        write!(stdout,
+               "Cleaning {} ({})... ",
+               hupa.get_name().yellow(),
+               hupa.get_backup_size()
+                   .unwrap_or(0)
+                   .file_size(DEFAULT_FSO)
+                   .unwrap())
+                .unwrap();
+        stdout.flush().unwrap();
+        match hupa.delete_backup() {
             Ok(_) => {
                 write!(stdout, "{}", "OK!".green()).unwrap();
                 stdout.flush().unwrap();
