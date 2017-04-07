@@ -8,17 +8,16 @@ extern crate humansize;
 extern crate libhupa;
 
 mod hupa;
+mod io;
 
 use hupa::*;
+use io::*;
 
 use clap::{App, AppSettings, Arg, SubCommand};
 use colored::*;
 use humansize::{FileSize, file_size_opts};
 use humansize::file_size_opts::FileSizeOpts;
 use libhupa::*;
-use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
 
 const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
     space: false,
@@ -94,7 +93,7 @@ fn main() {
         .get_matches();
 
     let metadata_path = metadata_path();
-    let mut hupas = read_metadata(&metadata_path);
+    let mut hupas = read_metadata_from_path(&metadata_path);
 
     match matches.subcommand() {
         ("add", _) => {
@@ -192,72 +191,4 @@ fn main() {
         }
         (s, _) => println!("`{}` is not supported yet", s),
     }
-}
-
-/// Get metadata path
-fn metadata_path() -> PathBuf {
-    // TODO write path in config
-    app_dirs::app_root(app_dirs::AppDataType::UserData, &APP_INFO)
-        .unwrap()
-        .join("metadata.json")
-}
-
-/// Return list of hupa from hupas_names
-fn resolve_names(hupas_names: &[String], hupas: &[Hupa]) -> Vec<Hupa> {
-    let mut resolved = Vec::new();
-    for hupa_name in hupas_names {
-        let mut found = false;
-        for hupa in hupas {
-            if hupa.get_name() == hupa_name {
-                resolved.push(hupa.clone());
-                found = true;
-                break;
-            }
-        }
-        if !found {
-            println!("Can't find hupa for name {}", hupa_name);
-        }
-    }
-    resolved
-}
-
-/// Read metadata
-fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
-    let mut f = match File::open(path) {
-        Ok(f) => f,
-        Err(_) => return Vec::new(),
-    };
-    libhupa::read_metadata(&mut f, Some(libhupa::MetadataFormat::Json)).unwrap()
-}
-
-/// Read line
-fn read_line(print: &str) -> String {
-    let stdin = ::std::io::stdin();
-    let mut stdout = ::std::io::stdout();
-    let mut buf = String::new();
-    while buf.is_empty() {
-        stdout.write(print.as_bytes()).unwrap();
-        stdout.flush().unwrap();
-        stdin.read_line(&mut buf).unwrap();
-        buf = buf.trim().to_string()
-    }
-    buf
-}
-
-/// Read line parse
-fn read_line_parse<T: ::std::str::FromStr>(print: &str, err_msg: &str) -> T {
-    loop {
-        let readed = read_line(print);
-        if let Ok(r) = readed.parse::<T>() {
-            return r;
-        } else {
-            println!("{}", err_msg.red())
-        }
-    }
-}
-
-/// Save hupas
-fn save_hupas(path: &PathBuf, hupas: &Vec<Hupa>) {
-    let mut f = File::create(path).unwrap();
-    libhupa::write_metadata(&mut f, &hupas, libhupa::MetadataFormat::Json).unwrap();
 }
