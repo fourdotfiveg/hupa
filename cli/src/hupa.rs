@@ -48,28 +48,22 @@ fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: PrintOrder, print: &str)
         PrintOrder::OriginToBackup => (origin, backup),
         PrintOrder::BackupToNull => (backup, 0.file_size(DEFAULT_FSO).unwrap()),
     };
-    write!(stdout,
-           "{} {} ({} -> {})... ",
-           print,
-           hupa.get_name().yellow(),
-           first,
-           second)
-            .unwrap();
-    stdout.flush().unwrap();
+    writef!(stdout,
+            "{} {} ({} -> {})... ",
+            print,
+            hupa.get_name().yellow(),
+            first,
+            second);
     match exec(hupa) {
         Ok(_) => {
-            write!(stdout, "{}", "OK!".green()).unwrap();
-            stdout.flush().unwrap();
+            writef!(stdout, "{}", "OK!".green());
         }
         Err(e) => {
             write!(stdout, "{}", "Error: ".red()).unwrap();
-            stdout.write(e.description().as_bytes()).unwrap();
-            stdout.flush().unwrap();
+            writef!(stdout, "{}", e.description());
         }
     }
-    stdout.write(b"\n").unwrap();
-    stdout.flush().unwrap();
-
+    writef!(stdout, "\n");
 }
 
 /// Backup hupas with interface
