@@ -1,0 +1,13 @@
+[package]
+name = "hupa"
+version = "0.1.0"
+authors = ["notkild <notkild@gmail.com>"]
+
+[dependencies]
+app_dirs = "1.1"
+clap = "2.21"
+colored = "1.4"
+humansize = "1.0"
+
+[dependencies.libhupa]
+path = "../lib"

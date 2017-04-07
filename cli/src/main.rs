@@ -5,7 +5,7 @@ extern crate app_dirs;
 extern crate clap;
 extern crate colored;
 extern crate humansize;
-extern crate hupa;
+extern crate libhupa as hupa;
 
 use hupa::APP_INFO;
 
@@ -230,7 +230,6 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
 
 /// Backup hupas with interface
 fn backup(hupas: &[Hupa]) {
-    // TODO backup with progress
     let mut stdout = ::std::io::stdout();
     for hupa in hupas {
         write!(stdout,

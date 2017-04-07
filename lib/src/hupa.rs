@@ -97,7 +97,6 @@ impl Hupa {
 
     /// Backup hupa
     pub fn backup(&self) -> Result<()> {
-        // TODO backup_with_progress
         let backup_dir = self.backup_dir()?;
         if !self.origin_path.exists() {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
@@ -105,7 +104,6 @@ impl Hupa {
         // TODO add overwrite and skip exist
         self.delete_backup()?;
         fs::create_dir_all(&backup_dir.parent().unwrap())?;
-        // TODO work on destination
         copy_all(&self.origin_path, &backup_dir)?;
         Ok(())
     }
