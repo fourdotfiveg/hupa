@@ -5,15 +5,17 @@ extern crate app_dirs;
 extern crate clap;
 extern crate colored;
 extern crate humansize;
-extern crate libhupa as hupa;
+extern crate libhupa;
 
-use hupa::APP_INFO;
+mod hupa;
+
+use hupa::*;
 
 use clap::{App, AppSettings, Arg, SubCommand};
 use colored::*;
 use humansize::{FileSize, file_size_opts};
 use humansize::file_size_opts::FileSizeOpts;
-use hupa::*;
+use libhupa::*;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
@@ -225,94 +227,7 @@ fn read_metadata(path: &PathBuf) -> Vec<Hupa> {
         Ok(f) => f,
         Err(_) => return Vec::new(),
     };
-    hupa::read_metadata(&mut f, Some(hupa::MetadataFormat::Json)).unwrap()
-}
-
-/// Backup hupas with interface
-fn backup(hupas: &[Hupa]) {
-    let mut stdout = ::std::io::stdout();
-    for hupa in hupas {
-        write!(stdout,
-               "Backing up {} ({})... ",
-               hupa.get_name().yellow(),
-               hupa.get_origin_size()
-                   .unwrap_or(0)
-                   .file_size(DEFAULT_FSO)
-                   .unwrap())
-                .unwrap();
-        stdout.flush().unwrap();
-        match hupa.backup() {
-            Ok(_) => {
-                write!(stdout, "{}", "OK!".green()).unwrap();
-                stdout.flush().unwrap();
-            }
-            Err(e) => {
-                write!(stdout, "{}", "Error: ".red()).unwrap();
-                stdout.write(e.description().as_bytes()).unwrap();
-                stdout.flush().unwrap();
-            }
-        }
-        stdout.write(b"\n").unwrap();
-        stdout.flush().unwrap();
-    }
-}
-
-/// Restore hupas with interface
-fn restore(hupas: &[Hupa]) {
-    let mut stdout = ::std::io::stdout();
-    for hupa in hupas {
-        write!(stdout,
-               "Restoring {} ({})... ",
-               hupa.get_name().yellow(),
-               hupa.get_backup_size()
-                   .unwrap_or(0)
-                   .file_size(DEFAULT_FSO)
-                   .unwrap())
-                .unwrap();
-        stdout.flush().unwrap();
-        match hupa.restore() {
-            Ok(_) => {
-                write!(stdout, "{}", "OK!".green()).unwrap();
-                stdout.flush().unwrap();
-            }
-            Err(e) => {
-                write!(stdout, "{}", "Error: ".red()).unwrap();
-                stdout.write(e.description().as_bytes()).unwrap();
-                stdout.flush().unwrap();
-            }
-        }
-        stdout.write(b"\n").unwrap();
-        stdout.flush().unwrap();
-    }
-}
-
-/// Clean hupas with interface
-fn clean(hupas: &[Hupa]) {
-    let mut stdout = ::std::io::stdout();
-    for hupa in hupas {
-        write!(stdout,
-               "Cleaning {} ({})... ",
-               hupa.get_name().yellow(),
-               hupa.get_backup_size()
-                   .unwrap_or(0)
-                   .file_size(DEFAULT_FSO)
-                   .unwrap())
-                .unwrap();
-        stdout.flush().unwrap();
-        match hupa.delete_backup() {
-            Ok(_) => {
-                write!(stdout, "{}", "OK!".green()).unwrap();
-                stdout.flush().unwrap();
-            }
-            Err(e) => {
-                write!(stdout, "{}", "Error: ".red()).unwrap();
-                stdout.write(e.description().as_bytes()).unwrap();
-                stdout.flush().unwrap();
-            }
-        }
-        stdout.write(b"\n").unwrap();
-        stdout.flush().unwrap();
-    }
+    libhupa::read_metadata(&mut f, Some(libhupa::MetadataFormat::Json)).unwrap()
 }
 
 /// Read line
@@ -344,5 +259,5 @@ fn read_line_parse<T: ::std::str::FromStr>(print: &str, err_msg: &str) -> T {
 /// Save hupas
 fn save_hupas(path: &PathBuf, hupas: &Vec<Hupa>) {
     let mut f = File::create(path).unwrap();
-    hupa::write_metadata(&mut f, &hupas, hupa::MetadataFormat::Json).unwrap();
+    libhupa::write_metadata(&mut f, &hupas, libhupa::MetadataFormat::Json).unwrap();
 }
