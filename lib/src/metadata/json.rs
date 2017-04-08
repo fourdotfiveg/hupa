@@ -11,7 +11,8 @@ impl Into<JsonValue> for Hupa {
             "name" => self.get_name(),
             "desc" => self.get_desc(),
             "categories" => self.get_categories().clone(),
-            "origin" => self.get_origin().display().to_string()
+            "origin" => self.get_origin().display().to_string(),
+            "autobackup" => self.is_autobackup_enabled()
         }
     }
 }
@@ -32,7 +33,8 @@ pub fn json_to_hupas(json: JsonValue) -> Result<Vec<Hupa>> {
             categories.push(category.as_str().unwrap().to_owned());
         }
         let origin = member["origin"].as_str().unwrap();
-        hupas.push(Hupa::new(name, desc, categories, origin));
+        let autobackup = member["autobackup"].as_bool().unwrap();
+        hupas.push(Hupa::new(name, desc, categories, origin, autobackup));
     }
     Ok(hupas)
 }
@@ -48,7 +50,9 @@ mod unit_tests {
              ("os", vec!["gentoo"], "/etc/portage"),
              ("dotfiles", vec!["all"], "/dotfiles")]
                 .into_iter()
-                .map(|(n, c, p)| Hupa::new(n, "", c.iter().map(|s| s.to_string()).collect(), p))
+                .map(|(n, c, p)| {
+                         Hupa::new(n, "", c.iter().map(|s| s.to_string()).collect(), p, false)
+                     })
                 .collect()
     }
 
@@ -62,7 +66,7 @@ mod unit_tests {
                              .as_str());
         cat_str.pop();
         cat_str.push(']');
-        format!("{{\"name\":\"{}\",\"desc\":\"{}\",\"categories\":{},\"origin\":\"{}\"}}",
+        format!("{{\"name\":\"{}\",\"desc\":\"{}\",\"categories\":{},\"origin\":\"{}\",\"autobackup\":false}}",
                 hupa.get_name(),
                 hupa.get_desc(),
                 cat_str,

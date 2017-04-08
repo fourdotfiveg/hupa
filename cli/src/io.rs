@@ -37,6 +37,21 @@ pub fn read_line(print: &str) -> String {
     buf
 }
 
+/// Read line bool
+pub fn read_line_bool(print: &str, err_msg: &str) -> bool {
+    loop {
+        let readed = read_line(print);
+        let readed = readed.to_lowercase();
+        if readed == "yes" || readed == "y" {
+            return true;
+        } else if readed == "no" || readed == "n" {
+            return false;
+        } else {
+            println!("{}", err_msg.red());
+        }
+    }
+}
+
 /// Read line numbers
 pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
     'main: loop {

@@ -116,11 +116,14 @@ fn main() {
                 let desc = read_line("Description: ");
                 let categories = read_line("Categories (ex: os/linux): ");
                 let origin = read_line("Origin path: ");
+                let autobackup = read_line_bool("Enable autobackup (y/n)? ",
+                                                "The answer is yes or no");
                 println!("{} is now added.", name.yellow());
                 let hupa = Hupa::new(name,
                                      desc,
                                      categories.split('/').map(|s| s.to_string()).collect(),
-                                     origin);
+                                     origin,
+                                     autobackup);
                 hupas.push(hupa);
             }
             save_hupas(&metadata_path, &hupas);

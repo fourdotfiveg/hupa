@@ -28,6 +28,7 @@ pub struct Hupa {
     desc: String,
     categories: Vec<String>,
     origin_path: PathBuf,
+    autobackup: bool,
 }
 
 impl Hupa {
@@ -35,13 +36,15 @@ impl Hupa {
     pub fn new<P: AsRef<Path>, S: AsRef<str>>(name: S,
                                               desc: S,
                                               categories: Vec<String>,
-                                              origin_path: P)
+                                              origin_path: P,
+                                              autobackup: bool)
                                               -> Hupa {
         Hupa {
             name: name.as_ref().to_string(),
             desc: desc.as_ref().to_string(),
             categories: categories,
             origin_path: origin_path.as_ref().to_path_buf(),
+            autobackup: autobackup,
         }
     }
 
@@ -73,6 +76,11 @@ impl Hupa {
     /// Get origin path of this hupa
     pub fn get_origin(&self) -> &PathBuf {
         &self.origin_path
+    }
+
+    /// Get autobackup state
+    pub fn is_autobackup_enabled(&self) -> bool {
+        self.autobackup
     }
 
     /// Return the backup directory of the hupa
@@ -187,14 +195,14 @@ mod unit_tests {
 
     #[test]
     fn backup_dir_fn_test() {
-        let app_dir = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas").unwrap();
+        let app_dir = app_dirs::app_root(AppDataType::UserData, &APP_INFO).unwrap();
         let app_dir = app_dir.to_string_lossy();
         for (name, cat) in vec_categories() {
             let mut cat_str = cat.iter()
                 .map(|s| format!("{}/", s))
                 .collect::<String>();
             cat_str.pop();
-            assert_eq!(Hupa::new(&name, &"".to_string(), cat.clone(), "/")
+            assert_eq!(Hupa::new(&name, &"".to_string(), cat.clone(), "/", false)
                            .backup_dir()
                            .unwrap()
                            .to_string_lossy(),
