@@ -43,16 +43,18 @@ fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: PrintOrder, print: &str)
         .file_size(DEFAULT_FSO)
         .unwrap();
 
-    let (first, second) = match size_order {
-        PrintOrder::BackupToOrigin => (backup, origin),
-        PrintOrder::OriginToBackup => (origin, backup),
-        PrintOrder::BackupToNull => (backup, 0.file_size(DEFAULT_FSO).unwrap()),
+    let (first, second, first_str, second_str) = match size_order {
+        PrintOrder::BackupToOrigin => (backup, origin, "backup", "origin"),
+        PrintOrder::OriginToBackup => (origin, backup, "origin", "backup"),
+        PrintOrder::BackupToNull => (backup, 0.file_size(DEFAULT_FSO).unwrap(), "backup", "void"),
     };
     writef!(stdout,
-            "{} {} ({} -> {})... ",
+            "{} {} ({}: {} -> {}: {})... ",
             print,
             hupa.get_name().yellow(),
+            first_str,
             first,
+            second_str,
             second);
     match exec(hupa) {
         Ok(_) => {
