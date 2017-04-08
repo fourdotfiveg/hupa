@@ -32,7 +32,13 @@ fn main() {
         .author("notkild <notkild@gmail.com>")
         .version(crate_version!())
         .setting(AppSettings::SubcommandRequired)
-        .subcommand(SubCommand::with_name("add").about("Add a new file/directory to backup"))
+        .subcommand(SubCommand::with_name("add")
+                        .about("Add a new file/directory to backup")
+                        .arg(Arg::with_name("count")
+                                 .help("Set the number of hupa to add")
+                                 .short("c")
+                                 .long("count")
+                                 .takes_value(true)))
         .subcommand(SubCommand::with_name("remove")
                         .aliases(&["rm", "del"])
                         .about("Remove one or multiple hupa"))
@@ -98,19 +104,30 @@ fn main() {
     let mut hupas = read_metadata_from_path(&metadata_path);
 
     match matches.subcommand() {
-        ("add", _) => {
-            let name = read_line("Name: ");
-            let desc = read_line("Description: ");
-            let categories = read_line("Categories (ex: os/linux): ");
-            let origin = read_line("Origin path: ");
-            let hupa = Hupa::new(name,
-                                 desc,
-                                 categories.split('/').map(|s| s.to_string()).collect(),
-                                 origin);
-            hupas.push(hupa);
+        ("add", Some(sub_m)) => {
+            let count = sub_m
+                .value_of("count")
+                .unwrap_or("1")
+                .parse::<usize>()
+                .unwrap_or(1);
+            // TODO check if hupa is already used
+            for _ in 0..count {
+                let name = read_line("Name: ");
+                let desc = read_line("Description: ");
+                let categories = read_line("Categories (ex: os/linux): ");
+                let origin = read_line("Origin path: ");
+                println!("{} is now added.", name.yellow());
+                let hupa = Hupa::new(name,
+                                     desc,
+                                     categories.split('/').map(|s| s.to_string()).collect(),
+                                     origin);
+                hupas.push(hupa);
+            }
             save_hupas(&metadata_path, &hupas);
         }
         ("remove", _) => {
+            // TODO show to the user which one is remove
+            // TODO add security
             let hupas_to_remove = select_hupas(&hupas, "Select hupas to remove");
             let hupas = hupas
                 .into_iter()

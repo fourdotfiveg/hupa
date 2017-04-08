@@ -45,7 +45,6 @@ pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
         for s in readed.split_whitespace() {
             if s.contains("..") {
                 let (mut first, mut second) = parse_range(s, max);
-                println!("{} {}", first, second);
                 if first < 1 || first > max || second < 1 || second > max {
                     println!("{}", err_msg.red());
                     continue 'main;
@@ -70,7 +69,6 @@ pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
                 result.push(num);
             }
         }
-        println!("{:?}", result);
         return result;
     }
 }
