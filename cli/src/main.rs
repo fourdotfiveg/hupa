@@ -116,6 +116,8 @@ fn main() {
                 let desc = read_line("Description: ");
                 let categories = read_line("Categories (ex: os/linux): ");
                 let origin = read_line("Origin path: ");
+                #[cfg(unix)]
+                let origin = origin.replace('~', env!("HOME"));
                 let autobackup = read_line_bool("Enable autobackup (y/n)? ",
                                                 "The answer is yes or no");
                 println!("{} is now added.", name.yellow());
