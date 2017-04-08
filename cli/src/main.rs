@@ -158,13 +158,19 @@ fn main() {
                                          .unwrap())
                             .bold();
                 }
-                println!("{}/{}{} {} {}{}: \n{}\n",
+                let autobackup = if hupa.is_autobackup_enabled() {
+                    format!("autobackup: {}", "enabled".green())
+                } else {
+                    format!("autobackup: {}", "disabled".red())
+                };
+                println!("{}/{}{} {} {}{}:\n{}\ndescription: {}\n",
                          hupa.get_categories_str().bold(),
                          hupa.get_name().yellow().bold(),
                          size_b,
                          "<->".bold(),
                          hupa.get_origin().display().to_string().bold(),
                          size_o,
+                         autobackup,
                          hupa.get_desc().dimmed());
             }
         }
