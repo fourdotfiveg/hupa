@@ -21,7 +21,9 @@ use std::path::{Path, PathBuf};
 ///
 /// `categories` - All the categories of the hupa. e.j: 'os', 'dotfiles', etc...
 ///
-/// `origin_path` is the director of the backed up directory
+/// `origin_path` is the directory of the backed up directory
+///
+/// `autobackup` - Daemon specific variable, enable autobackup.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Hupa {
     name: String,
@@ -103,11 +105,26 @@ impl Hupa {
         get_size(&self.origin_path).map_err(|e| e.into())
     }
 
+    /// Check if origin has changed
+    pub fn has_origin_changed(&self) -> Result<bool> {
+        let origin_metadata = self.origin_path.metadata()?;
+        let origin_time = origin_metadata.modified()?;
+        let backup = self.backup_dir()?;
+        let backup_metadata = backup.metadata()?;
+        let backup_time = backup_metadata.modified()?;
+        Ok(origin_time < backup_time)
+    }
+
     /// Backup hupa
     pub fn backup(&self) -> Result<()> {
         let backup_dir = self.backup_dir()?;
         if !self.origin_path.exists() {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
+        }
+        if let Ok(b) = self.has_origin_changed() {
+            if b {
+                return Ok(());
+            }
         }
         // TODO add overwrite and skip exist
         self.delete_backup()?;
