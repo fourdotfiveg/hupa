@@ -1,6 +1,7 @@
 use DEFAULT_FSO;
 use colored::*;
 use humansize::FileSize;
+use io::*;
 use std::io::Write;
 use libhupa::*;
 
@@ -95,5 +96,32 @@ pub fn clean(hupas: &[Hupa]) {
                   |h| h.delete_backup(),
                   PrintOrder::BackupToNull,
                   "Cleaning");
+    }
+}
+
+/// Select hupas
+pub fn select_hupas(hupas: &[Hupa], print: &str) -> Vec<Hupa> {
+    let mut selected = Vec::new();
+    for (i, hupa) in hupas.iter().enumerate() {
+        println!("[{}] {}: {}", i + 1, hupa.get_name(), hupa.get_desc());
+    }
+    println!("[{}] Cancel", hupas.len() + 1);
+    'main: loop {
+        let idxs = read_line_usize(&format!("{} [1-{}]: ", print, hupas.len() + 1),
+                                   &format!("You should enter a number between 1 and {}",
+                                            hupas.len() + 1),
+                                   hupas.len() + 1);
+        for idx in idxs {
+            if idx == 0 || idx > hupas.len() + 1 {
+                println!("{} {}", idx.to_string().red(), " is not in the range".red());
+                continue 'main;
+            } else if idx == hupas.len() + 1 {
+                println!("Action cancelled");
+                return Vec::new();
+            } else {
+                selected.push(hupas[idx - 1].clone());
+            }
+        }
+        return selected;
     }
 }

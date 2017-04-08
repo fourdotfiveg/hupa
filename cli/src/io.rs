@@ -37,16 +37,61 @@ pub fn read_line(print: &str) -> String {
     buf
 }
 
-/// Read line parse
-pub fn read_line_parse<T: ::std::str::FromStr>(print: &str, err_msg: &str) -> T {
-    loop {
+/// Read line numbers
+pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
+    'main: loop {
         let readed = read_line(print);
-        if let Ok(r) = readed.parse::<T>() {
-            return r;
-        } else {
-            println!("{}", err_msg.red())
+        let mut result = Vec::new();
+        for s in readed.split_whitespace() {
+            if s.contains("..") {
+                let (mut first, mut second) = parse_range(s, max);
+                println!("{} {}", first, second);
+                if first < 1 || first > max || second < 1 || second > max {
+                    println!("{}", err_msg.red());
+                    continue 'main;
+                }
+                if first > second {
+                    let tmp = first;
+                    first = second;
+                    second = tmp;
+                }
+                if second == max {
+                    second = max - 1;
+                }
+                for i in first..(second + 1) {
+                    result.push(i);
+                }
+            } else {
+                let num = s.parse().unwrap_or(0);
+                if num < 1 || num > max {
+                    println!("{}", err_msg.red());
+                    continue 'main;
+                }
+                result.push(num);
+            }
         }
+        println!("{:?}", result);
+        return result;
     }
+}
+
+/// Parse range
+fn parse_range(s: &str, max: usize) -> (usize, usize) {
+    let mut splitted = s.split("..");
+    let first = splitted.next().unwrap_or("1");
+    let max_str = max.to_string();
+    let second = splitted.next().unwrap_or(max_str.as_str());
+    let first = parse_one(first, 1);
+    let second = parse_one(second, max);
+    (first, second)
+}
+
+/// Parse only one number
+fn parse_one(s: &str, or: usize) -> usize {
+    if s.is_empty() {
+        return or;
+    }
+    s.parse().unwrap_or(0)
 }
 
 /// Save hupas

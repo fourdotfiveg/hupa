@@ -111,27 +111,12 @@ fn main() {
             save_hupas(&metadata_path, &hupas);
         }
         ("remove", _) => {
-            for (i, hupa) in hupas.iter().enumerate() {
-                println!("[{}] {}: {}", i + 1, hupa.get_name(), hupa.get_desc());
-            }
-            println!("[{}] Cancel", hupas.len() + 1);
-            loop {
-                let idx = read_line_parse::<usize>(&format!("Hupa to remove [1-{}]: ",
-                                                            hupas.len() + 1),
-                                                   &format!("You should enter a number between 1 and {}",
-                                                            hupas.len() + 1));
-                if idx == 0 || idx > hupas.len() + 1 {
-                    println!("{}", "This is not in the range".red());
-                    continue;
-                } else if idx == hupas.len() + 1 {
-                    println!("Action cancelled");
-                    break;
-                } else {
-                    hupas.remove(idx - 1);
-                    save_hupas(&metadata_path, &hupas);
-                    break;
-                }
-            }
+            let hupas_to_remove = select_hupas(&hupas, "Select hupas to remove");
+            let hupas = hupas
+                .into_iter()
+                .filter(|h| !hupas_to_remove.contains(h))
+                .collect::<Vec<Hupa>>();
+            save_hupas(&metadata_path, &hupas);
         }
         ("print", Some(sub_m)) => {
             for hupa in &hupas {
@@ -168,7 +153,8 @@ fn main() {
                 let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
                 backup(&resolve_names(&hupas_names, &hupas));
             } else {
-                // TODO put prompt for choosing
+                let hupas = select_hupas(&hupas, "Select hupas to backup");
+                backup(&hupas);
             }
         }
         ("restore", Some(sub_m)) => {
@@ -178,9 +164,9 @@ fn main() {
                 let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
                 restore(&resolve_names(&hupas_names, &hupas));
             } else {
-                // TODO put prompt for choosing
+                let hupas = select_hupas(&hupas, "Select hupas to restore");
+                restore(&hupas);
             }
-
         }
         ("clean", Some(sub_m)) => {
             if sub_m.is_present("all") {
@@ -189,6 +175,8 @@ fn main() {
                 let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
                 clean(&resolve_names(&hupas_names, &hupas));
             } else {
+                let hupas = select_hupas(&hupas, "Select hupas to clean");
+                clean(&hupas);
             }
         }
         (s, _) => println!("`{}` is not supported yet", s),
