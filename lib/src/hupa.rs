@@ -77,7 +77,7 @@ impl Hupa {
 
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> Result<PathBuf> {
-        let mut hupas = app_dirs::app_dir(AppDataType::UserData, &APP_INFO, "hupas")?;
+        let mut hupas = app_dirs::app_root(AppDataType::UserData, &APP_INFO)?;
         for category in &self.categories {
             hupas = hupas.join(category);
         }
