@@ -1,3 +1,5 @@
+#![cfg(unix)]
+// TODO support for windows
 extern crate app_dirs;
 extern crate daemonize;
 extern crate libhupa;
