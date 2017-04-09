@@ -128,6 +128,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "hupad"
+version = "0.1.0"
+dependencies = [
+ "libhupa 0.1.0",
+]
+
+[[package]]
 name = "json"
 version = "0.11.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"

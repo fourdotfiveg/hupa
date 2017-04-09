@@ -1,0 +1,9 @@
+[package]
+name = "hupad"
+version = "0.1.0"
+authors = ["notkild <notkild@gmail.com>"]
+
+[dependencies]
+
+[dependencies.libhupa]
+path = "../lib"
