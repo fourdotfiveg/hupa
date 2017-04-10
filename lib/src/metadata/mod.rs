@@ -2,7 +2,6 @@
 //!
 //! Metadata file contains all info to instantiate hupas.
 
-#[cfg(feature = "text-json")]
 mod json;
 
 use error::*;
@@ -11,7 +10,6 @@ use std::io::{Read, Write};
 
 /// File format to use for metadata.
 pub enum MetadataFormat {
-    #[cfg(feature = "text-json")]
     /// Read and write metadata to json format
     Json,
 }
@@ -26,7 +24,6 @@ pub fn read_metadata<R: Read>(stream: &mut R, format: Option<MetadataFormat>) ->
     let mut buffer = String::new();
     stream.read_to_string(&mut buffer)?;
     let hupas = match format {
-        #[cfg(feature = "text-json")]
         Some(MetadataFormat::Json) => {
             let json = ::json::parse(&buffer)?;
             json::json_to_hupas(json)?
@@ -55,7 +52,6 @@ pub fn write_metadata<W: Write>(stream: &mut W,
                                 -> Result<()> {
     let hupas = hupas.clone();
     let to_write = match format {
-        #[cfg(feature = "text-json")]
         MetadataFormat::Json => ::json::stringify(hupas).as_bytes().to_vec(),
     };
     stream.write_all(&to_write)?;

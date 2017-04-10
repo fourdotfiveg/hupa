@@ -5,7 +5,6 @@
 extern crate app_dirs;
 #[macro_use]
 extern crate error_chain;
-#[cfg(feature="text-json")]
 #[macro_use]
 extern crate json;
 
