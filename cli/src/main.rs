@@ -136,7 +136,7 @@ fn main() {
                 let hupa = Hupa::new(name,
                                      desc,
                                      categories.split('/').map(|s| s.to_string()).collect(),
-                                     Hupa::get_default_backup_parent().unwrap(),
+                                     Hupa::get_default_backup_parent().expect("Can't get default backup parent"),
                                      origin,
                                      autobackup);
                 hupas.push(hupa);
@@ -162,13 +162,13 @@ fn main() {
                                      hupa.get_backup_size()
                                          .unwrap_or(0)
                                          .file_size(DEFAULT_FSO)
-                                         .unwrap())
+                                         .expect("Error when showing size"))
                             .bold();
                     size_o = format!(" ({})",
                                      hupa.get_origin_size()
                                          .unwrap_or(0)
                                          .file_size(DEFAULT_FSO)
-                                         .unwrap())
+                                         .expect("Error when showing size"))
                             .bold();
                 }
                 let autobackup = if hupa.is_autobackup_enabled() {
@@ -192,7 +192,7 @@ fn main() {
             match sub_m.value_of("config") {
                 Some(s) => {
                     let config = Config::read_config_from_path(s).unwrap_or(Config::default());
-                    hupas = read_metadata_from_config(&config).unwrap();
+                    hupas = read_metadata_from_config(&config).expect("Error while reading metadata from config");
                 }
                 None => {}
             }
@@ -210,7 +210,7 @@ fn main() {
             match sub_m.value_of("config") {
                 Some(s) => {
                     let config = Config::read_config_from_path(s).unwrap_or(Config::default());
-                    hupas = read_metadata_from_config(&config).unwrap();
+                    hupas = read_metadata_from_config(&config).expect("Error while reading metadata from config");
                 }
                 None => {}
             }

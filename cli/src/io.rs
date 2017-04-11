@@ -10,9 +10,10 @@ pub fn read_line(print: &str) -> String {
     let mut stdout = ::std::io::stdout();
     let mut buf = String::new();
     while buf.is_empty() {
-        stdout.write(print.as_bytes()).unwrap();
-        stdout.flush().unwrap();
-        stdin.read_line(&mut buf).unwrap();
+        writef!(stdout, "{}", print);
+        stdin
+            .read_line(&mut buf)
+            .expect("Error while reading stdin");
         buf = buf.trim().to_string()
     }
     buf
@@ -90,6 +91,6 @@ fn parse_one(s: &str, or: usize) -> usize {
 
 /// Save hupas
 pub fn save_hupas(config: &Config, hupas: &Vec<Hupa>) {
-    let mut f = File::create(&config.metadata_path).unwrap();
-    libhupa::write_metadata(&mut f, &hupas, config.metadata_format.clone()).unwrap();
+    let mut f = File::create(&config.metadata_path).expect("Can't create metadata file");
+    libhupa::write_metadata(&mut f, &hupas, config.metadata_format.clone()).expect("Can't write to metadata file");
 }

@@ -39,16 +39,23 @@ fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: PrintOrder, print: &str)
     let backup = hupa.get_backup_size()
         .unwrap_or(0)
         .file_size(DEFAULT_FSO)
-        .unwrap();
+        .expect("Error while showing file size");
     let origin = hupa.get_origin_size()
         .unwrap_or(0)
         .file_size(DEFAULT_FSO)
-        .unwrap();
+        .expect("Error while showing file size");
 
     let (first, second, first_str, second_str) = match size_order {
         PrintOrder::BackupToOrigin => (backup, origin, "backup", "origin"),
         PrintOrder::OriginToBackup => (origin, backup, "origin", "backup"),
-        PrintOrder::BackupToNull => (backup, 0.file_size(DEFAULT_FSO).unwrap(), "backup", "void"),
+        PrintOrder::BackupToNull => {
+            (backup,
+             0
+                 .file_size(DEFAULT_FSO)
+                 .expect("Error while showing file size"),
+             "backup",
+             "void")
+        }
     };
     writef!(stdout,
             "{} {} ({}: {} -> {}: {})... ",
@@ -63,7 +70,7 @@ fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: PrintOrder, print: &str)
             writef!(stdout, "{}", "OK!".green());
         }
         Err(e) => {
-            write!(stdout, "{}", "Error: ".red()).unwrap();
+            write!(stdout, "{}", "Error: ".red()).expect("Can't write to stdout");
             writef!(stdout, "{}", e.description());
         }
     }
@@ -96,15 +103,24 @@ pub fn restore(hupas: &[Hupa]) {
                     .collect::<String>();
                 println!("Then run `sudo {}--config {}` to restore them.",
                          args,
-                         Config::config_path().unwrap().display());
+                         Config::config_path()
+                             .expect("Can't get config path")
+                             .display());
                 let result = read_line_bool("Do you want me to launch it? [y/n]: ", "");
                 if result {
                     let mut args = ::std::env::args().collect::<Vec<String>>();
                     args.push("--config".to_string());
-                    args.push(Config::config_path().unwrap().display().to_string());
+                    args.push(Config::config_path()
+                                  .expect("Can't get config path")
+                                  .display()
+                                  .to_string());
                     let mut command = Command::new("sudo");
                     let ref_command = command.args(args);
-                    ref_command.spawn().unwrap().wait().unwrap();
+                    ref_command
+                        .spawn()
+                        .expect("Error while spawning sudo command")
+                        .wait()
+                        .expect("Error while waiting sudo command");
                 }
                 return;
             }
