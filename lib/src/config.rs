@@ -35,7 +35,7 @@ impl Config {
     /// Path to the config
     pub fn config_path() -> Result<PathBuf> {
         Ok(::app_dirs::app_root(::app_dirs::AppDataType::UserConfig, &APP_INFO)?
-               .join("config.json"))
+               .join("config"))
     }
 
     /// Read config from readable stream
