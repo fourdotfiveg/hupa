@@ -113,7 +113,7 @@ fn main() {
         .get_matches();
 
     let config = Config::read_config().unwrap_or(Config::default());
-    let mut hupas = read_metadata_from_config(&config).unwrap();
+    let mut hupas = read_metadata_from_config(&config).unwrap_or(Vec::new());
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
@@ -136,6 +136,7 @@ fn main() {
                 let hupa = Hupa::new(name,
                                      desc,
                                      categories.split('/').map(|s| s.to_string()).collect(),
+                                     Hupa::get_default_backup_parent().unwrap(),
                                      origin,
                                      autobackup);
                 hupas.push(hupa);
