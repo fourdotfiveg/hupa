@@ -54,7 +54,12 @@ fn main() {
                         .arg(Arg::with_name("hupa")
                                  .help("Hupa(s) to backup")
                                  .takes_value(true)
-                                 .multiple(true)))
+                                 .multiple(true))
+                        .arg(Arg::with_name("config")
+                                 .help("Set config path")
+                                 .short("c")
+                                 .long("config")
+                                 .takes_value(true)))
         .subcommand(SubCommand::with_name("restore")
                         .about("Restore hupa(s)")
                         .arg(Arg::with_name("all")
@@ -183,6 +188,13 @@ fn main() {
             }
         }
         ("backup", Some(sub_m)) => {
+            match sub_m.value_of("config") {
+                Some(s) => {
+                    let config = Config::read_config_from_path(s).unwrap_or(Config::default());
+                    hupas = read_metadata_from_config(&config).unwrap();
+                }
+                None => {}
+            }
             if sub_m.is_present("all") {
                 backup(&hupas);
             } else if let Some(hupas_names) = sub_m.values_of("hupa") {
