@@ -13,6 +13,11 @@ error_chain! {
             description("Metadata is invalid")
             display("Metadata is invalid")
         }
+        /// Invalid metadata format
+        InvalidMetadataFormat(f: String) {
+            description("Specified metadata format is invalid")
+            display("Specified metadata format is invalid: {}", f)
+        }
         /// Error when origin file is missing
         MissingBackup(p: String)  {
             description("Backup file is missing")

@@ -9,9 +9,29 @@ use hupa::Hupa;
 use std::io::{Read, Write};
 
 /// File format to use for metadata.
+#[derive(Clone, Debug)]
 pub enum MetadataFormat {
     /// Read and write metadata to json format
     Json,
+}
+
+impl MetadataFormat {
+    /// Convert str into MetadataFormat
+    pub fn from_str<S: AsRef<str>>(s: S) -> Result<MetadataFormat> {
+        match s.as_ref() {
+            "json" => Ok(MetadataFormat::Json),
+            s => bail!(ErrorKind::InvalidMetadataFormat(s.to_string())),
+        }
+    }
+}
+
+/// Convert MetadataFormat into String
+impl Into<String> for MetadataFormat {
+    fn into(self) -> String {
+        match self {
+            MetadataFormat::Json => "json".to_string(),
+        }
+    }
 }
 
 /// Read metadata from stream

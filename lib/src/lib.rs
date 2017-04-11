@@ -14,6 +14,8 @@ mod fs_extra;
 mod hupa;
 mod metadata;
 
+// TODO write a lot of test
+pub use config::*;
 pub use error::*;
 pub use hupa::*;
 pub use metadata::*;
