@@ -65,7 +65,12 @@ fn main() {
                         .arg(Arg::with_name("hupa")
                                  .help("Hupa(s) to restore")
                                  .takes_value(true)
-                                 .multiple(true)))
+                                 .multiple(true))
+                        .arg(Arg::with_name("config")
+                                 .help("Set config path")
+                                 .short("c")
+                                 .long("config")
+                                 .takes_value(true)))
         .subcommand(SubCommand::with_name("generate")
                         .about("Generate an archive of all hupas")
                         .arg(Arg::with_name("format")
@@ -174,6 +179,7 @@ fn main() {
                          size_o,
                          autobackup,
                          hupa.get_desc().dimmed());
+                hupa.needs_root();
             }
         }
         ("backup", Some(sub_m)) => {
@@ -188,6 +194,13 @@ fn main() {
             }
         }
         ("restore", Some(sub_m)) => {
+            match sub_m.value_of("config") {
+                Some(s) => {
+                    let config = Config::read_config_from_path(s).unwrap_or(Config::default());
+                    hupas = read_metadata_from_config(&config).unwrap();
+                }
+                None => {}
+            }
             if sub_m.is_present("all") {
                 restore(&hupas);
             } else if let Some(hupas_names) = sub_m.values_of("hupa") {

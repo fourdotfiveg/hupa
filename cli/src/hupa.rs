@@ -90,12 +90,8 @@ pub fn restore(hupas: &[Hupa]) {
             if result {
                 break;
             } else {
-                let args = ::std::env::args()
-                    .map(|s| format!("{} ", s))
-                    .collect::<String>();
-                println!("Then run `sudo {}` to restore them or just re-run\
-                         this command without selecting those who needs root",
-                         args);
+                println!("Then run `sudo hupa restore --config {} <args>` to restore them.",
+                         Config::config_path().unwrap().display());
                 return;
             }
         }
