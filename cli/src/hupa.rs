@@ -90,7 +90,11 @@ pub fn restore(hupas: &[Hupa]) {
             if result {
                 break;
             } else {
-                println!("Then run `sudo hupa restore --config {} <args>` to restore them.",
+                let args = ::std::env::args()
+                    .map(|s| format!("{} ", s))
+                    .collect::<String>();
+                println!("Then run `sudo {}--config {}` to restore them.",
+                         args,
                          Config::config_path().unwrap().display());
                 return;
             }
