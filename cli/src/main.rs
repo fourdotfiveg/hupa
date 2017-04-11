@@ -28,6 +28,7 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 
 fn main() {
     // TODO add ability to modify config
+    // TODO add ability to modify hupa
     let matches = App::new("hupa")
         .about("Hupa is a tool to backup and restore data")
         .author("notkild <notkild@gmail.com>")
