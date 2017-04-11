@@ -11,8 +11,11 @@ impl Hupa {
             Ok(m) => m,
             Err(_) => return true,
         };
+        let uid = unsafe { getuid() };
+        let gid = unsafe { getgid() };
         let euid = unsafe { geteuid() };
         let egid = unsafe { getegid() };
+        println!("{} {} {} {}", uid, gid, euid, egid);
         let file_uid = metadata.uid();
         let file_gid = metadata.gid();
         let permissions = metadata.permissions();

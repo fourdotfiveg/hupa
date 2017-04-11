@@ -55,7 +55,12 @@ impl Config {
     /// Read config from user config
     pub fn read_config() -> Result<Config> {
         let path = Config::config_path()?;
-        let mut f = File::open(&path)?;
+        Config::read_config_from_path(&path)
+    }
+
+    /// Read config from path
+    pub fn read_config_from_path<P: AsRef<Path>>(path: P) -> Result<Config> {
+        let mut f = File::open(path)?;
         Config::from_json_stream(&mut f)
     }
 
