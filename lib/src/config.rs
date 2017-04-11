@@ -16,14 +16,14 @@ pub struct Config {
     /// Format of the metadata
     pub metadata_format: MetadataFormat,
     /// Interval between each autobackup
-    pub autobackup_interval: usize,
+    pub autobackup_interval: u64,
 }
 
 impl Config {
     /// Default constructor
     pub fn new<P: AsRef<Path>>(metadata_path: P,
                                metadata_format: MetadataFormat,
-                               autobackup_interval: usize)
+                               autobackup_interval: u64)
                                -> Config {
         Config {
             metadata_path: metadata_path.as_ref().to_path_buf(),
@@ -46,7 +46,7 @@ impl Config {
         // TODO better error handling
         let metadata_path = json["metadata_path"].as_str().unwrap();
         let metadata_format = json["metadata_format"].as_str().unwrap();
-        let autobackup_interval = json["autobackup_interval"].as_usize().unwrap();
+        let autobackup_interval = json["autobackup_interval"].as_u64().unwrap();
         Ok(Config::new(metadata_path,
                        MetadataFormat::from_str(metadata_format)?,
                        autobackup_interval))
