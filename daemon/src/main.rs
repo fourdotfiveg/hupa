@@ -12,13 +12,10 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 fn main() {
-    // TODO read path from config
     // TODO make daemon receive command from cli
     // TODO make daemon check update
-    let metadata_path = app_dirs::app_root(app_dirs::AppDataType::UserData, &APP_INFO)
-        .unwrap()
-        .join("metadata.json");
-    let hupas = read_metadata_from_path(&metadata_path);
+    let config = Config::read_config().unwrap_or(Config::default());
+    let hupas = read_metadata_from_config(&config).unwrap();
     let daemonize = Daemonize::new();
     let path = app_dirs::app_root(app_dirs::AppDataType::UserCache, &APP_INFO)
         .unwrap()
@@ -28,6 +25,9 @@ fn main() {
         Ok(_) => {
             loop {
                 for hupa in &hupas {
+                    if !hupa.is_autobackup_enabled() {
+                        continue;
+                    }
                     match hupa.backup() {
                         Ok(_) => {
                             let _ = write!(file, "{} is backed up\n", hupa.get_name());
@@ -40,20 +40,10 @@ fn main() {
                         }
                     }
                 }
-                // TODO read time from config
-                write!(file, "Waiting 3600 secs...\n");
-                ::std::thread::sleep(Duration::from_secs(3600));
+                write!(file, "Waiting {} secs...\n", config.autobackup_interval);
+                ::std::thread::sleep(Duration::from_secs(config.autobackup_interval));
             }
         }
         Err(e) => println!("{}", e),
     }
-}
-
-/// Read metadata
-pub fn read_metadata_from_path(path: &PathBuf) -> Vec<Hupa> {
-    let mut f = match File::open(path) {
-        Ok(f) => f,
-        Err(_) => return Vec::new(),
-    };
-    libhupa::read_metadata(&mut f, Some(libhupa::MetadataFormat::Json)).unwrap()
 }
