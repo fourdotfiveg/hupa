@@ -4,8 +4,10 @@
 
 mod json;
 
+use config::*;
 use error::*;
 use hupa::Hupa;
+use std::fs::File;
 use std::io::{Read, Write};
 
 /// File format to use for metadata.
@@ -57,6 +59,17 @@ pub fn read_metadata<R: Read>(stream: &mut R, format: Option<MetadataFormat>) ->
         }
     };
     Ok(hupas)
+}
+
+/// Read metadata from config
+///
+/// `config` - A reference to config
+pub fn read_metadata_from_config(config: &Config) -> Result<Vec<Hupa>> {
+    let mut f = match File::open(&config.metadata_path) {
+        Ok(f) => f,
+        Err(_) => return Ok(Vec::new()),
+    };
+    read_metadata(&mut f, Some(config.metadata_format.clone()))
 }
 
 /// Write metadata to a stream

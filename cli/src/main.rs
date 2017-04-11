@@ -101,8 +101,8 @@ fn main() {
                                  .multiple(true)))
         .get_matches();
 
-    let config = get_config();
-    let mut hupas = io::read_metadata(&config);
+    let config = Config::read_config().unwrap_or(Config::default());
+    let mut hupas = read_metadata_from_config(&config).unwrap();
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {

@@ -4,20 +4,6 @@ use libhupa::*;
 use std::fs::File;
 use std::io::Write;
 
-/// Return config
-pub fn get_config() -> Config {
-    Config::read_config().unwrap_or(Config::default())
-}
-
-/// Read metadata
-pub fn read_metadata(config: &Config) -> Vec<Hupa> {
-    let mut f = match File::open(&config.metadata_path) {
-        Ok(f) => f,
-        Err(_) => return Vec::new(),
-    };
-    libhupa::read_metadata(&mut f, Some(config.metadata_format.clone())).unwrap()
-}
-
 /// Read line
 pub fn read_line(print: &str) -> String {
     let stdin = ::std::io::stdin();
