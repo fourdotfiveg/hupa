@@ -72,7 +72,7 @@ pub fn write_metadata<W: Write>(stream: &mut W,
                                 -> Result<()> {
     let hupas = hupas.clone();
     let to_write = match format {
-        MetadataFormat::Json => ::json::stringify(hupas).as_bytes().to_vec(),
+        MetadataFormat::Json => ::json::stringify_pretty(hupas, 2).as_bytes().to_vec(),
     };
     stream.write_all(&to_write)?;
     Ok(())
