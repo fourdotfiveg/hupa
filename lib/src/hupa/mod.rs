@@ -4,6 +4,11 @@
 //!
 //! They contain a path to their backup and their origin.
 
+#[cfg(unix)]
+mod unix;
+#[cfg(unix)]
+pub use self::unix::*;
+
 use APP_INFO;
 use app_dirs::{self, AppDataType};
 use error::*;

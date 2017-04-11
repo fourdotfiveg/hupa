@@ -2,6 +2,9 @@
 
 #![deny(missing_docs)]
 
+#[cfg(unix)]
+extern crate libc;
+
 extern crate app_dirs;
 #[macro_use]
 extern crate error_chain;
