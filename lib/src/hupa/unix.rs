@@ -8,11 +8,17 @@ use super::*;
 impl Hupa {
     /// Set euid to restore file
     pub fn set_eid(&self) -> Result<()> {
+        let uid = unsafe { getuid() };
+        if uid != 0 {
+            return Ok(());
+        }
         let metadata = self.origin_path.metadata()?;
         let file_uid = metadata.uid();
         let file_gid = metadata.gid();
-        unsafe { setresuid(0, file_uid, 0) };
+        // Reset effective uid for gid just for safety
+        unsafe { setresuid(0, 0, 0) };
         unsafe { setresgid(0, file_gid, 0) };
+        unsafe { setresuid(0, file_uid, 0) };
         Ok(())
     }
 
