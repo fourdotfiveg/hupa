@@ -28,11 +28,5 @@ error_chain! {
             description("Origin file is missing")
             display("Origin file is misssing, backup can't be made: {}", p)
         }
-        /// Not root
-        #[cfg(unix)]
-        NotRoot {
-            description("Need to be root to change euid")
-            display("Need to be root to change euid")
-        }
     }
 }
