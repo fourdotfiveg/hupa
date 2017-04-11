@@ -3,6 +3,7 @@ use colored::*;
 use humansize::FileSize;
 use io::*;
 use std::io::Write;
+use std::process::Command;
 use libhupa::*;
 
 /// Return list of hupa from hupas_names
@@ -96,6 +97,15 @@ pub fn restore(hupas: &[Hupa]) {
                 println!("Then run `sudo {}--config {}` to restore them.",
                          args,
                          Config::config_path().unwrap().display());
+                let result = read_line_bool("Do you want me to launch it? [y/n]: ", "");
+                if result {
+                    let mut args = ::std::env::args().collect::<Vec<String>>();
+                    args.push("--config".to_string());
+                    args.push(Config::config_path().unwrap().display().to_string());
+                    let mut command = Command::new("sudo");
+                    let ref_command = command.args(args);
+                    ref_command.spawn().unwrap().wait().unwrap();
+                }
                 return;
             }
         }
