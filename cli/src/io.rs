@@ -1,26 +1,21 @@
-use app_dirs;
 use colored::*;
 use libhupa;
 use libhupa::*;
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
 
-/// Get metadata path
-pub fn metadata_path() -> PathBuf {
-    // TODO write path in config
-    app_dirs::app_root(app_dirs::AppDataType::UserData, &APP_INFO)
-        .unwrap()
-        .join("metadata.json")
+/// Return config
+pub fn get_config() -> Config {
+    Config::read_config().unwrap_or(Config::default())
 }
 
 /// Read metadata
-pub fn read_metadata_from_path(path: &PathBuf) -> Vec<Hupa> {
-    let mut f = match File::open(path) {
+pub fn read_metadata(config: &Config) -> Vec<Hupa> {
+    let mut f = match File::open(&config.metadata_path) {
         Ok(f) => f,
         Err(_) => return Vec::new(),
     };
-    libhupa::read_metadata(&mut f, Some(libhupa::MetadataFormat::Json)).unwrap()
+    libhupa::read_metadata(&mut f, Some(config.metadata_format.clone())).unwrap()
 }
 
 /// Read line
@@ -108,7 +103,7 @@ fn parse_one(s: &str, or: usize) -> usize {
 }
 
 /// Save hupas
-pub fn save_hupas(path: &PathBuf, hupas: &Vec<Hupa>) {
-    let mut f = File::create(path).unwrap();
-    libhupa::write_metadata(&mut f, &hupas, libhupa::MetadataFormat::Json).unwrap();
+pub fn save_hupas(config: &Config, hupas: &Vec<Hupa>) {
+    let mut f = File::create(&config.metadata_path).unwrap();
+    libhupa::write_metadata(&mut f, &hupas, config.metadata_format.clone()).unwrap();
 }

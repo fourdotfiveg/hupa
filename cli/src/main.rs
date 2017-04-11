@@ -27,6 +27,7 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 };
 
 fn main() {
+    // TODO add ability to modify config
     let matches = App::new("hupa")
         .about("Hupa is a tool to backup and restore data")
         .author("notkild <notkild@gmail.com>")
@@ -100,8 +101,8 @@ fn main() {
                                  .multiple(true)))
         .get_matches();
 
-    let metadata_path = metadata_path();
-    let mut hupas = read_metadata_from_path(&metadata_path);
+    let config = get_config();
+    let mut hupas = io::read_metadata(&config);
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
@@ -128,7 +129,7 @@ fn main() {
                                      autobackup);
                 hupas.push(hupa);
             }
-            save_hupas(&metadata_path, &hupas);
+            save_hupas(&config, &hupas);
         }
         ("remove", _) => {
             // TODO show to the user which one is remove
@@ -138,7 +139,7 @@ fn main() {
                 .into_iter()
                 .filter(|h| !hupas_to_remove.contains(h))
                 .collect::<Vec<Hupa>>();
-            save_hupas(&metadata_path, &hupas);
+            save_hupas(&config, &hupas);
         }
         ("print", Some(sub_m)) => {
             for hupa in &hupas {
