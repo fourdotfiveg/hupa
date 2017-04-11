@@ -91,3 +91,19 @@ impl Default for Config {
         Config::new(metadata_path, MetadataFormat::Json, 3600)
     }
 }
+
+#[cfg(test)]
+mod unit_tests {
+    use std::io::Cursor;
+    use super::*;
+
+    #[test]
+    fn read_config_from_json() {
+        let json_str = "{\"metadata_path\":\"/\", \"metadata_format\":\"json\", \"autobackup_interval\":260}";
+        let mut cursor = Cursor::new(json_str);
+        let config = Config::from_json_stream(&mut cursor).unwrap();
+        assert_eq!(config.metadata_path, Path::new("/"));
+        assert_eq!(config.metadata_format, MetadataFormat::Json);
+        assert_eq!(config.autobackup_interval, 260);
+    }
+}

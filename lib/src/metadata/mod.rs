@@ -11,7 +11,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 
 /// File format to use for metadata.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum MetadataFormat {
     /// Read and write metadata to json format
     Json,
@@ -89,4 +89,21 @@ pub fn write_metadata<W: Write>(stream: &mut W,
     };
     stream.write_all(&to_write)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use std::io::Cursor;
+    use super::*;
+
+    #[test]
+    fn read_metadata_no_format() {
+        let hupas = vec![Hupa::new("a", "b", vec!["hello".to_string()], "/", false),
+                         Hupa::new("c", "d", vec!["hello".to_string()], "/", false),
+                         Hupa::new("e", "f", vec!["hello".to_string()], "/", false)];
+        let json = ::json::stringify(hupas.clone());
+        let mut cursor = Cursor::new(json);
+        let readed_hupas = read_metadata(&mut cursor, None).unwrap();
+        assert_eq!(hupas, readed_hupas);
+    }
 }
