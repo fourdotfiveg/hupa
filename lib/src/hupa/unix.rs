@@ -15,11 +15,6 @@ impl Hupa {
         let egid = unsafe { getegid() };
         let file_uid = metadata.uid();
         let file_gid = metadata.gid();
-        println!("uid {}, file_uid: {}, gid {}, file_gid: {}",
-                 euid,
-                 file_uid,
-                 egid,
-                 file_gid);
         let permissions = metadata.permissions();
         let mode = permissions.mode();
         let (owner_w, group_w, other_w) = can_write(mode);
