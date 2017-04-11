@@ -98,9 +98,9 @@ mod unit_tests {
 
     #[test]
     fn read_metadata_no_format() {
-        let hupas = vec![Hupa::new("a", "b", vec!["hello".to_string()], "/", false),
-                         Hupa::new("c", "d", vec!["hello".to_string()], "/", false),
-                         Hupa::new("e", "f", vec!["hello".to_string()], "/", false)];
+        let hupas = vec![Hupa::new("a", "b", vec!["hello".to_string()], "/", "/", false),
+                         Hupa::new("c", "d", vec!["hello".to_string()], "/", "/", false),
+                         Hupa::new("e", "f", vec!["hello".to_string()], "/", "/", false)];
         let json = ::json::stringify(hupas.clone());
         let mut cursor = Cursor::new(json);
         let readed_hupas = read_metadata(&mut cursor, None).unwrap();

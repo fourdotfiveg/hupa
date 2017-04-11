@@ -10,7 +10,6 @@ mod unix;
 pub use self::unix::*;
 
 use APP_INFO;
-use app_dirs::{self, AppDataType};
 use error::*;
 use fs_extra::{copy_dir, get_size};
 use std::fs;
@@ -26,6 +25,8 @@ use std::path::{Path, PathBuf};
 ///
 /// `categories` - All the categories of the hupa. e.j: 'os', 'dotfiles', etc...
 ///
+/// `backup_parent` - Parent directory of the hupa, where it will be stored
+///
 /// `origin_path` is the directory of the backed up directory
 ///
 /// `autobackup` - Daemon specific variable, enable autobackup.
@@ -34,22 +35,25 @@ pub struct Hupa {
     name: String,
     desc: String,
     categories: Vec<String>,
+    backup_parent: PathBuf,
     origin_path: PathBuf,
     autobackup: bool,
 }
 
 impl Hupa {
     /// Default constructor
-    pub fn new<P: AsRef<Path>, S: AsRef<str>>(name: S,
-                                              desc: S,
-                                              categories: Vec<String>,
-                                              origin_path: P,
-                                              autobackup: bool)
-                                              -> Hupa {
+    pub fn new<P: AsRef<Path>, S: AsRef<str>, T: AsRef<Path>>(name: S,
+                                                              desc: S,
+                                                              categories: Vec<String>,
+                                                              backup_parent: P,
+                                                              origin_path: T,
+                                                              autobackup: bool)
+                                                              -> Hupa {
         Hupa {
             name: name.as_ref().to_string(),
             desc: desc.as_ref().to_string(),
             categories: categories,
+            backup_parent: backup_parent.as_ref().to_owned(),
             origin_path: origin_path.as_ref().to_path_buf(),
             autobackup: autobackup,
         }
@@ -80,6 +84,16 @@ impl Hupa {
         categories
     }
 
+    /// Get the default backup parent
+    pub fn get_default_backup_parent() -> Result<PathBuf> {
+        ::app_dirs::app_root(::app_dirs::AppDataType::UserData, &APP_INFO).map_err(|e| e.into())
+    }
+
+    /// Get backup parent path
+    pub fn get_backup_parent(&self) -> &PathBuf {
+        &self.backup_parent
+    }
+
     /// Get origin path of this hupa
     pub fn get_origin(&self) -> &PathBuf {
         &self.origin_path
@@ -91,18 +105,18 @@ impl Hupa {
     }
 
     /// Return the backup directory of the hupa
-    pub fn backup_dir(&self) -> Result<PathBuf> {
-        let mut hupas = app_dirs::app_root(AppDataType::UserData, &APP_INFO)?;
+    pub fn backup_dir(&self) -> PathBuf {
+        let mut hupas = self.backup_parent.clone();
         for category in &self.categories {
             hupas = hupas.join(category);
         }
         hupas = hupas.join(&self.name);
-        Ok(hupas)
+        hupas
     }
 
     /// Get the backup size
     pub fn get_backup_size(&self) -> Result<u64> {
-        get_size(self.backup_dir()?).map_err(|e| e.into())
+        get_size(self.backup_dir()).map_err(|e| e.into())
     }
 
     /// Get the origin size
@@ -114,7 +128,7 @@ impl Hupa {
     pub fn has_origin_changed(&self) -> Result<bool> {
         let origin_metadata = self.origin_path.metadata()?;
         let origin_time = origin_metadata.modified()?;
-        let backup = self.backup_dir()?;
+        let backup = self.backup_dir();
         let backup_metadata = backup.metadata()?;
         let backup_time = backup_metadata.modified()?;
         Ok(origin_time < backup_time)
@@ -122,7 +136,7 @@ impl Hupa {
 
     /// Backup hupa
     pub fn backup(&self) -> Result<()> {
-        let backup_dir = self.backup_dir()?;
+        let backup_dir = self.backup_dir();
         if !self.origin_path.exists() {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
         }
@@ -141,7 +155,7 @@ impl Hupa {
     /// Restore hupa
     pub fn restore(&self) -> Result<()> {
         // TODO restore_with_progress
-        let backup_dir = self.backup_dir()?;
+        let backup_dir = self.backup_dir();
         if !backup_dir.exists() {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
         }
@@ -155,7 +169,7 @@ impl Hupa {
 
     /// Delete backup
     pub fn delete_backup(&self) -> Result<()> {
-        let backup_dir = self.backup_dir()?;
+        let backup_dir = self.backup_dir();
         if backup_dir.exists() {
             remove_all(&backup_dir)?;
         }
@@ -198,39 +212,4 @@ fn remove_all<P: AsRef<Path>>(path: P) -> Result<()> {
         fs::remove_dir_all(&path)?;
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod unit_tests {
-    use super::*;
-
-    fn vec_categories() -> Vec<(String, Vec<String>)> {
-        vec![("test", vec!["test"]),
-             ("os", vec!["linux"]),
-             ("os", vec!["osx"]),
-             ("dotfiles", vec!["nvim"]),
-             ("dotfiles", vec!["emacs"]),
-             ("projects", vec!["c"]),
-             ("projects", vec!["rust"])]
-                .into_iter()
-                .map(|(a, b)| (a.to_owned(), b.iter().map(|s| s.to_string()).collect()))
-                .collect()
-    }
-
-    #[test]
-    fn backup_dir_fn_test() {
-        let app_dir = app_dirs::app_root(AppDataType::UserData, &APP_INFO).unwrap();
-        let app_dir = app_dir.to_string_lossy();
-        for (name, cat) in vec_categories() {
-            let mut cat_str = cat.iter()
-                .map(|s| format!("{}/", s))
-                .collect::<String>();
-            cat_str.pop();
-            assert_eq!(Hupa::new(&name, &"".to_string(), cat.clone(), "/", false)
-                           .backup_dir()
-                           .unwrap()
-                           .to_string_lossy(),
-                       format!("{}/{}/{}", app_dir, cat_str, name));
-        }
-    }
 }
