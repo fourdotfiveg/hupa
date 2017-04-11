@@ -7,14 +7,16 @@ use super::*;
 
 impl Hupa {
     /// Set euid to restore file
-    pub fn set_euid(&self) -> Result<()> {
+    pub fn set_eid(&self) -> Result<()> {
         let uid = unsafe { getuid() };
         if uid != 0 {
             bail!(ErrorKind::NotRoot)
         }
         let metadata = self.origin_path.metadata()?;
         let file_uid = metadata.uid();
+        let file_gid = metadata.gid();
         unsafe { setresuid(0, file_uid, 0) };
+        unsafe { setresgid(0, file_gid, 0) };
         Ok(())
     }
 
