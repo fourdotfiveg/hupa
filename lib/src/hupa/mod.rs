@@ -145,6 +145,8 @@ impl Hupa {
         if !backup_dir.exists() {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
         }
+        #[cfg(unix)]
+        self.set_euid()?;
         // TODO add overwrite and skip exist
         self.delete_origin()?;
         copy_all(&backup_dir, &self.origin_path)?;

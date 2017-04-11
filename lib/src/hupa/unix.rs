@@ -1,12 +1,29 @@
 //! Unix only function for hupa
 
+use error::*;
 use libc::*;
 use std::os::unix::fs::*;
 use super::*;
 
 impl Hupa {
+    /// Set euid to restore file
+    pub fn set_euid(&self) -> Result<()> {
+        let uid = unsafe { getuid() };
+        if uid != 0 {
+            bail!(ErrorKind::NotRoot)
+        }
+        let metadata = self.origin_path.metadata()?;
+        let file_uid = metadata.uid();
+        unsafe { setresuid(0, file_uid, 0) };
+        Ok(())
+    }
+
     /// Check if user needs to be root to restore this hupa
     pub fn needs_root(&self) -> bool {
+        let uid = unsafe { getuid() };
+        if uid == 0 {
+            return false;
+        }
         let metadata = match self.origin_path.metadata() {
             Ok(m) => m,
             Err(_) => return true,
