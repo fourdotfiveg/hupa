@@ -34,6 +34,11 @@ fn main() {
         .author("notkild <notkild@gmail.com>")
         .version(crate_version!())
         .setting(AppSettings::SubcommandRequired)
+        .arg(Arg::with_name("config")
+                 .help("Set config path")
+                 .short("c")
+                 .long("config")
+                 .takes_value(true))
         .subcommand(SubCommand::with_name("add")
                         .about("Add a new file/directory to backup")
                         .arg(Arg::with_name("count")
@@ -54,12 +59,7 @@ fn main() {
                         .arg(Arg::with_name("hupa")
                                  .help("Hupa(s) to backup")
                                  .takes_value(true)
-                                 .multiple(true))
-                        .arg(Arg::with_name("config")
-                                 .help("Set config path")
-                                 .short("c")
-                                 .long("config")
-                                 .takes_value(true)))
+                                 .multiple(true)))
         .subcommand(SubCommand::with_name("restore")
                         .about("Restore hupa(s)")
                         .arg(Arg::with_name("all")
@@ -71,11 +71,6 @@ fn main() {
                                  .help("Hupa(s) to restore")
                                  .takes_value(true)
                                  .multiple(true))
-                        .arg(Arg::with_name("config")
-                                 .help("Set config path")
-                                 .short("c")
-                                 .long("config")
-                                 .takes_value(true))
                         .arg(Arg::with_name("ignore-root")
                                  .help("Ignore hupas that need root access, only for unix")
                                  .short("i")
@@ -116,7 +111,11 @@ fn main() {
                                  .multiple(true)))
         .get_matches();
 
-    let config = Config::read_config().unwrap_or(Config::default());
+    let config = match matches.value_of("config") {
+            Some(s) => Config::read_config_from_path(s),
+            None => Config::read_config(),
+        }
+        .unwrap_or(Config::default());
     let mut hupas = read_metadata_from_config(&config).unwrap_or(Vec::new());
 
     match matches.subcommand() {
@@ -193,13 +192,6 @@ fn main() {
             }
         }
         ("backup", Some(sub_m)) => {
-            match sub_m.value_of("config") {
-                Some(s) => {
-                    let config = Config::read_config_from_path(s).unwrap_or(Config::default());
-                    hupas = read_metadata_from_config(&config).expect("Error while reading metadata from config");
-                }
-                None => {}
-            }
             if sub_m.is_present("all") {
                 backup(&hupas);
             } else if let Some(hupas_names) = sub_m.values_of("hupa") {
@@ -211,13 +203,6 @@ fn main() {
             }
         }
         ("restore", Some(sub_m)) => {
-            match sub_m.value_of("config") {
-                Some(s) => {
-                    let config = Config::read_config_from_path(s).unwrap_or(Config::default());
-                    hupas = read_metadata_from_config(&config).expect("Error while reading metadata from config");
-                }
-                None => {}
-            }
             let hupas = if sub_m.is_present("all") {
                 hupas
             } else if let Some(hupas_names) = sub_m.values_of("hupa") {
