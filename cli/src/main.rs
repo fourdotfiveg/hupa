@@ -43,6 +43,9 @@ fn main() {
             (about: "Remove one or multiple hupas")
             (aliases: &["rm", "del"])
             (@arg hupa: +takes_value +multiple "Hupa(s) to remove"))
+        (@subcommand modify =>
+            (about: "Modify parameter of an hupa")
+            (@arg hupa: +takes_value +multiple "Hupa(s) to modify"))
         (@subcommand backup =>
             (about: "Backup hupa(s)")
             (@arg all: -a --all conflicts_with[hupa] "Backup all hupas")
@@ -124,6 +127,15 @@ fn main() {
                 println!("{} is now removed.", h.get_name().yellow().bold());
             }
             save_hupas(&config, &hupas);
+        }
+        ("modify", Some(sub_m)) => {
+            let hupas_to_modify = if let Some(hupas_names) = sub_m.value_of("hupa") {
+                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
+                resolve_names(&hupas_names, &hupas)
+            } else {
+                select_hupas(&hupas, "Select hupas to modify")
+            };
+            // TODO
         }
         ("print", Some(sub_m)) => {
             for hupa in &hupas {
