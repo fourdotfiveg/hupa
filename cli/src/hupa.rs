@@ -89,39 +89,28 @@ pub fn backup(hupas: &[Hupa]) {
 
 /// Restore hupas with interface
 #[cfg(unix)]
-pub fn restore(hupas: &[Hupa]) {
+pub fn restore(hupas: &[Hupa], ignore_root: bool) {
     // Needs root check
     for hupa in hupas {
-        if hupa.needs_root() {
+        if hupa.needs_root() && !ignore_root {
             println!("Looks like some hupas needs root to be restored.");
             let result = read_line_bool("Ignore them? [y/n]: ", "");
             if result {
                 break;
             } else {
-                let args = ::std::env::args()
-                    .map(|s| format!("{} ", s))
-                    .collect::<String>();
-                println!("Then run `sudo {}--config {}` to restore them.",
-                         args,
-                         Config::config_path()
-                             .expect("Can't get config path")
-                             .display());
-                let result = read_line_bool("Do you want me to launch it? [y/n]: ", "");
-                if result {
-                    let mut args = ::std::env::args().collect::<Vec<String>>();
-                    args.push("--config".to_string());
-                    args.push(Config::config_path()
-                                  .expect("Can't get config path")
-                                  .display()
-                                  .to_string());
-                    let mut command = Command::new("sudo");
-                    let ref_command = command.args(args);
-                    ref_command
-                        .spawn()
-                        .expect("Error while spawning sudo command")
-                        .wait()
-                        .expect("Error while waiting sudo command");
-                }
+                let mut args = ::std::env::args().collect::<Vec<String>>();
+                args.push("--config".to_string());
+                args.push(Config::config_path()
+                              .expect("Can't get config path")
+                              .display()
+                              .to_string());
+                let mut command = Command::new("sudo");
+                let ref_command = command.args(args);
+                ref_command
+                    .spawn()
+                    .expect("Error while spawning sudo command")
+                    .wait()
+                    .expect("Error while waiting sudo command");
                 return;
             }
         }

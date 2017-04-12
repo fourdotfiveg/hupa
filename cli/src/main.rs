@@ -75,7 +75,11 @@ fn main() {
                                  .help("Set config path")
                                  .short("c")
                                  .long("config")
-                                 .takes_value(true)))
+                                 .takes_value(true))
+                        .arg(Arg::with_name("ignore-root")
+                                 .help("Ignore hupas that need root access, only for unix")
+                                 .short("i")
+                                 .long("ignore-root")))
         .subcommand(SubCommand::with_name("generate")
                         .about("Generate an archive of all hupas")
                         .arg(Arg::with_name("format")
@@ -214,15 +218,18 @@ fn main() {
                 }
                 None => {}
             }
-            if sub_m.is_present("all") {
-                restore(&hupas);
+            let hupas = if sub_m.is_present("all") {
+                hupas
             } else if let Some(hupas_names) = sub_m.values_of("hupa") {
                 let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
-                restore(&resolve_names(&hupas_names, &hupas));
+                resolve_names(&hupas_names, &hupas)
             } else {
-                let hupas = select_hupas(&hupas, "Select hupas to restore");
-                restore(&hupas);
-            }
+                select_hupas(&hupas, "Select hupas to restore")
+            };
+            #[cfg(not(unix))]
+            restore(&hupas);
+            #[cfg(unix)]
+            restore(&hupas, sub_m.is_present("ignore-root"));
         }
         ("clean", Some(sub_m)) => {
             if sub_m.is_present("all") {
