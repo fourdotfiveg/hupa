@@ -41,7 +41,8 @@ fn main() {
             (@arg count: -n --count +takes_value "Set the number of hupa to add"))
         (@subcommand remove =>
             (about: "Remove one or multiple hupas")
-            (aliases: &["rm", "del"]))
+            (aliases: &["rm", "del"])
+            (@arg hupa: +takes_value +multiple "Hupa(s) to remove"))
         (@subcommand backup =>
             (about: "Backup hupa(s)")
             (@arg all: -a --all conflicts_with[hupa] "Backup all hupas")
@@ -106,14 +107,22 @@ fn main() {
             }
             save_hupas(&config, &hupas);
         }
-        ("remove", _) => {
+        ("remove", Some(sub_m)) => {
             // TODO show to the user which one is remove
             // TODO add security
-            let hupas_to_remove = select_hupas(&hupas, "Select hupas to remove");
+            let hupas_to_remove = if let Some(hupas_names) = sub_m.values_of("hupa") {
+                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
+                resolve_names(&hupas_names, &hupas)
+            } else {
+                select_hupas(&hupas, "Select hupas to remove")
+            };
             let hupas = hupas
                 .into_iter()
                 .filter(|h| !hupas_to_remove.contains(h))
                 .collect::<Vec<Hupa>>();
+            for h in &hupas_to_remove {
+                println!("{} is now removed.", h.get_name().yellow().bold());
+            }
             save_hupas(&config, &hupas);
         }
         ("print", Some(sub_m)) => {
