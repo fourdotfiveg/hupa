@@ -15,7 +15,7 @@ mod io;
 use hupa::*;
 use io::*;
 
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::AppSettings;
 use colored::*;
 use humansize::{FileSize, file_size_opts};
 use humansize::file_size_opts::FileSizeOpts;
@@ -72,6 +72,11 @@ fn main() {
         }
         .unwrap_or(Config::default());
     let mut hupas = read_metadata_from_config(&config).unwrap_or(Vec::new());
+    if let Some(p) = matches.value_of("metadata") {
+        let mut f = ::std::fs::File::open(p).expect(&format!("Can't open {}", p));
+        hupas = read_metadata(&mut f, None).unwrap_or(hupas);
+    }
+
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
