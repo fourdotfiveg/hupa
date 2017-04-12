@@ -100,12 +100,11 @@ pub fn restore(hupas: &[Hupa], ignore_root: bool) {
             } else {
                 let mut args = ::std::env::args().collect::<Vec<String>>();
                 if !args.contains(&"--config".to_string()) {
-                    args.insert(1, "--config".to_string());
-                    args.insert(2,
-                                Config::config_path()
-                                    .expect("Can't get config path")
-                                    .display()
-                                    .to_string());
+                    args.push("--config".to_string());
+                    args.push(Config::config_path()
+                                  .expect("Can't get config path")
+                                  .display()
+                                  .to_string());
                 }
                 let mut command = Command::new("sudo");
                 let ref_command = command.args(args);
