@@ -29,88 +29,42 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 fn main() {
     // TODO add ability to modify config
     // TODO add ability to modify hupa
-    let matches = App::new("hupa")
-        .about("Hupa is a tool to backup and restore data")
-        .author("notkild <notkild@gmail.com>")
-        .version(crate_version!())
-        .setting(AppSettings::SubcommandRequired)
-        .arg(Arg::with_name("config")
-                 .help("Set config path")
-                 .short("c")
-                 .long("config")
-                 .global(true)
-                 .takes_value(true))
-        .subcommand(SubCommand::with_name("add")
-                        .about("Add a new file/directory to backup")
-                        .arg(Arg::with_name("count")
-                                 .help("Set the number of hupa to add")
-                                 .short("n")
-                                 .long("count")
-                                 .takes_value(true)))
-        .subcommand(SubCommand::with_name("remove")
-                        .aliases(&["rm", "del"])
-                        .about("Remove one or multiple hupa"))
-        .subcommand(SubCommand::with_name("backup")
-                        .about("Backup hupa(s)")
-                        .arg(Arg::with_name("all")
-                                 .help("Backup all hups")
-                                 .short("a")
-                                 .long("all")
-                                 .conflicts_with("hupa"))
-                        .arg(Arg::with_name("hupa")
-                                 .help("Hupa(s) to backup")
-                                 .takes_value(true)
-                                 .multiple(true)))
-        .subcommand(SubCommand::with_name("restore")
-                        .about("Restore hupa(s)")
-                        .arg(Arg::with_name("all")
-                                 .help("Restore all hupa")
-                                 .short("a")
-                                 .long("all")
-                                 .conflicts_with("hupa"))
-                        .arg(Arg::with_name("hupa")
-                                 .help("Hupa(s) to restore")
-                                 .takes_value(true)
-                                 .multiple(true))
-                        .arg(Arg::with_name("ignore-root")
-                                 .help("Ignore hupas that need root access, only for unix")
-                                 .short("i")
-                                 .long("ignore-root")))
-        .subcommand(SubCommand::with_name("generate")
-                        .about("Generate an archive of all hupas")
-                        .arg(Arg::with_name("format")
-                                 .short("f")
-                                 .long("format")
-                                 .help("File format to use for archive")
-                                 .takes_value(true))
-                        .arg(Arg::with_name("output")
-                                 .short("o")
-                                 .long("output")
-                                 .help("Output directory/file of the created archive")
-                                 .takes_value(true)))
-        .subcommand(SubCommand::with_name("unpack")
-                        .about("Unpack an hupa archive")
-                        .arg(Arg::with_name("archive")
-                                 .help("Path to the archive")
-                                 .required(true)
-                                 .takes_value(true)))
-        .subcommand(SubCommand::with_name("print")
-                        .about("Print list of all hupas")
-                        .arg(Arg::with_name("size")
-                                 .help("Show files sizes")
-                                 .short("s")
-                                 .long("size")))
-        .subcommand(SubCommand::with_name("clean")
-                        .about("Clean hupa(s)")
-                        .arg(Arg::with_name("all")
-                                 .help("Clean all hupas")
-                                 .short("a")
-                                 .long("all"))
-                        .arg(Arg::with_name("hupa")
-                                 .help("Hupa(s) to clean")
-                                 .takes_value(true)
-                                 .multiple(true)))
-        .get_matches();
+    let matches = clap_app!(hupa =>
+        (version: crate_version!())
+        (author: "Bastien Badzioch <notkild@gmail.com>")
+        (about: "Hupa is a tool to backup and restore data")
+        (setting: AppSettings::SubcommandRequiredElseHelp)
+        (@arg config: -c --config +global +takes_value "Set config path")
+        (@arg metadata: --metadata +global +takes_value "Set metadata path")
+        (@subcommand add =>
+            (about: "Add a new hupa")
+            (@arg count: -n --count +takes_value "Set the number of hupa to add"))
+        (@subcommand remove =>
+            (about: "Remove one or multiple hupas")
+            (aliases: &["rm", "del"]))
+        (@subcommand backup =>
+            (about: "Backup hupa(s)")
+            (@arg all: -a --all conflicts_with[hupa] "Backup all hupas")
+            (@arg hupa: +takes_value +multiple "Hupa(s) to backup"))
+        (@subcommand restore =>
+            (about: "Restore hupa(s)")
+            (@arg all: -a --all conflicts_with[hupa] "Restore all hupas")
+            (@arg hupa: +takes_value +multiple "Hupa(s) to restore")
+            (@arg ignore_root: -i --ignore-root "Ignore hupas that need root access, only for unix"))
+        (@subcommand generate =>
+            (about: "Generate an archive of all hupas")
+            (@arg format: -f --format +takes_value possible_value[tar zip] "File format to use for achive")
+            (@arg output: -o --output +takes_value "Output directory/file of the created archive"))
+        (@subcommand unpack =>
+            (about: "Unpack an hupa archive")
+            (@arg archive: +required +takes_value "Path to the archive"))
+        (@subcommand print =>
+            (about: "Print list of all hupas")
+            (@arg size: -s --size "Show files sizes"))
+        (@subcommand clean =>
+            (about: "Clean hupa(s)")
+            (@arg all: -a -all "Clean all hupas")
+            (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))).get_matches();
 
     let config = match matches.value_of("config") {
             Some(s) => Config::read_config_from_path(s),
@@ -215,7 +169,7 @@ fn main() {
             #[cfg(not(unix))]
             restore(&hupas);
             #[cfg(unix)]
-            restore(&hupas, sub_m.is_present("ignore-root"));
+            restore(&hupas, sub_m.is_present("ignore_root"));
         }
         ("clean", Some(sub_m)) => {
             if sub_m.is_present("all") {
