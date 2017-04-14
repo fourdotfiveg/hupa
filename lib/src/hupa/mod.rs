@@ -104,6 +104,23 @@ impl Hupa {
         self.autobackup
     }
 
+    /// Set name of the hupa
+    pub fn set_name(&mut self, name: String) -> Result<()> {
+        // TODO
+        let old_backup_dir = self.backup_dir();
+        self.name = name;
+        let new_backup_dir = self.backup_dir();
+        if old_backup_dir.exists() {
+            copy_dir(&old_backup_dir, new_backup_dir)?;
+            if old_backup_dir.is_dir() {
+                fs::remove_dir_all(old_backup_dir)?;
+            } else if old_backup_dir.is_file() {
+                fs::remove_file(old_backup_dir)?;
+            }
+        }
+        Ok(())
+    }
+
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> PathBuf {
         let mut hupas = self.backup_parent.clone();
