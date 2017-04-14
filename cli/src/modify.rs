@@ -40,6 +40,10 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
                     hupa.set_categories(categories.split('/').map(|s| s.to_string()).collect())
                         .expect("Cannot reset categories");
                 }
+                4 => {
+                    hupa.set_backup_parent(read_line("New backup parent: "))
+                        .expect("Cannot reset backup parent");
+                }
                 _ => {}
             }
         }

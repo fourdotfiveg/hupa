@@ -110,12 +110,7 @@ impl Hupa {
         self.name = name;
         let new_backup_dir = self.backup_dir();
         if old_backup_dir.exists() {
-            copy_dir(&old_backup_dir, new_backup_dir)?;
-            if old_backup_dir.is_dir() {
-                fs::remove_dir_all(old_backup_dir)?;
-            } else if old_backup_dir.is_file() {
-                fs::remove_file(old_backup_dir)?;
-            }
+            move_all(old_backup_dir, new_backup_dir)?;
         }
         Ok(())
     }
@@ -131,12 +126,18 @@ impl Hupa {
         self.categories = categories;
         let new_backup_dir = self.backup_dir();
         if old_backup_dir.exists() {
-            copy_dir(&old_backup_dir, new_backup_dir)?;
-            if old_backup_dir.is_dir() {
-                fs::remove_dir_all(old_backup_dir)?;
-            } else if old_backup_dir.is_file() {
-                fs::remove_file(old_backup_dir)?;
-            }
+            move_all(old_backup_dir, new_backup_dir)?;
+        }
+        Ok(())
+    }
+
+    /// Set backup parent of the hupa
+    pub fn set_backup_parent<P: AsRef<Path>>(&mut self, backup_parent: P) -> Result<()> {
+        let old_backup_dir = self.backup_dir();
+        self.backup_parent = backup_parent.as_ref().to_path_buf();
+        let new_backup_dir = self.backup_dir();
+        if old_backup_dir.exists() {
+            move_all(old_backup_dir, new_backup_dir)?;
         }
         Ok(())
     }
@@ -234,6 +235,18 @@ fn copy_all<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
     } else if from.is_dir() {
         fs::create_dir_all(&to)?;
         copy_dir(from, to.as_ref())?;
+    }
+    Ok(())
+}
+
+/// Move dir to new dir
+fn move_all<P: AsRef<Path>, R: AsRef<Path>>(from: P, to: R) -> Result<()> {
+    let (from, to) = (from.as_ref(), to.as_ref());
+    copy_dir(&from, to)?;
+    if from.is_dir() {
+        fs::remove_dir_all(from)?;
+    } else if from.is_file() {
+        fs::remove_file(from)?;
     }
     Ok(())
 }
