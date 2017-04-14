@@ -35,6 +35,11 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
                         .expect("Cannot rename hupa");
                 }
                 2 => hupa.set_desc(read_line("New description: ")),
+                3 => {
+                    let categories = read_line("New categories (ex: os/linux): ");
+                    hupa.set_categories(categories.split('/').map(|s| s.to_string()).collect())
+                        .expect("Cannot reset categories");
+                }
                 _ => {}
             }
         }
