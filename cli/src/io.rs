@@ -19,6 +19,18 @@ pub fn read_line(print: &str) -> String {
     buf
 }
 
+/// Read line and parse
+pub fn read_line_parse<T: ::std::str::FromStr>(print: &str, err_msg: &str) -> T {
+    loop {
+        let readed = read_line(print);
+        if let Ok(r) = readed.parse::<T>() {
+            return r;
+        } else {
+            println!("{}", err_msg.red());
+        }
+    }
+}
+
 /// Read line bool
 pub fn read_line_bool(print: &str, err_msg: &str) -> bool {
     loop {

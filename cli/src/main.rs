@@ -15,6 +15,7 @@ mod io;
 mod add;
 mod remove;
 mod modify;
+mod config;
 mod print;
 mod backup;
 mod restore;
@@ -23,6 +24,7 @@ mod clean;
 use add::*;
 use remove::*;
 use modify::*;
+use config::*;
 use print::*;
 use backup::*;
 use restore::*;
@@ -39,7 +41,6 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 };
 
 fn main() {
-    // TODO add ability to modify config
     let matches = clap_app!(hupa =>
         (version: crate_version!())
         (author: "Bastien Badzioch <notkild@gmail.com>")
@@ -57,6 +58,8 @@ fn main() {
         (@subcommand modify =>
             (about: "Modify parameter of an hupa")
             (@arg hupa: +takes_value +multiple "Hupa(s) to modify"))
+        (@subcommand config =>
+            (about: "Modify config"))
         (@subcommand backup =>
             (about: "Backup hupa(s)")
             (@arg all: -a --all conflicts_with[hupa] "Backup all hupas")
@@ -106,6 +109,9 @@ fn main() {
         }
         ("modify", Some(sub_m)) => {
             modify_subcommand(hupas, &config, sub_m);
+        }
+        ("config", _) => {
+            config_subcommand(config);
         }
         ("print", Some(sub_m)) => {
             print_subcommand(hupas, sub_m);

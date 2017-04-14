@@ -12,8 +12,9 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
     } else {
         select_hupas(&hupas, "Select hupas to modify")
     };
+    // TODO show current value
     for hupa in &mut hupas {
-        if !hupas_to_modify.contains(&hupa) {
+        if !hupas_to_modify.contains(hupa) {
             continue;
         }
         println!("Hupa {}:", hupa.get_name().yellow().bold());
@@ -25,9 +26,6 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
         println!("[6] Set autobackup");
         println!("[7] Cancel");
         let idxs = read_line_usize("Select action [1-7]: ", "", 7);
-        if idxs.contains(&7) {
-            continue;
-        }
         for i in idxs {
             match i {
                 1 => {
