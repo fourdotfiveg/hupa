@@ -5,24 +5,29 @@ use humansize::*;
 use libhupa::*;
 
 /// Print subcommand
-pub fn print_subcommand(hupas: &Vec<Hupa>, sub_m: &ArgMatches) {
+pub fn print_subcommand(hupas: Vec<Hupa>, sub_m: &ArgMatches) {
     for hupa in hupas {
-        let mut size_b = ColoredString::default();
-        let mut size_o = ColoredString::default();
-        if sub_m.is_present("size") {
-            size_b = format!(" ({})",
-                             hupa.get_backup_size()
-                                 .unwrap_or(0)
-                                 .file_size(DEFAULT_FSO)
-                                 .expect("Error when showing size"))
-                    .bold();
-            size_o = format!(" ({})",
-                             hupa.get_origin_size()
-                                 .unwrap_or(0)
-                                 .file_size(DEFAULT_FSO)
-                                 .expect("Error when showing size"))
-                    .bold();
-        }
+        let size_b = if sub_m.is_present("size") {
+            format!(" ({})",
+                    hupa.get_backup_size()
+                        .unwrap_or(0)
+                        .file_size(DEFAULT_FSO)
+                        .expect("Error when showing size"))
+                    .bold()
+
+        } else {
+            ColoredString::default()
+        };
+        let size_o = if sub_m.is_present("size") {
+            format!(" ({})",
+                    hupa.get_origin_size()
+                        .unwrap_or(0)
+                        .file_size(DEFAULT_FSO)
+                        .expect("Error when showing size"))
+                    .bold()
+        } else {
+            ColoredString::default()
+        };
         let autobackup = if hupa.is_autobackup_enabled() {
             format!("autobackup: {}", "enabled".green())
         } else {

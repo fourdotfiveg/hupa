@@ -36,20 +36,22 @@ pub fn read_line_bool(print: &str, err_msg: &str) -> bool {
 
 /// Read line numbers
 pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
-    'main: loop {
+    let mut result = Vec::new();
+    let mut valid = false;
+    while !valid {
         let readed = read_line(print);
-        let mut result = Vec::new();
+        result = Vec::new();
+        valid = true;
         for s in readed.split_whitespace() {
             if s.contains("..") {
                 let (mut first, mut second) = parse_range(s, max);
                 if first < 1 || first > max || second < 1 || second > max {
                     println!("{}", err_msg.red());
-                    continue 'main;
+                    valid = false;
+                    break;
                 }
                 if first > second {
-                    let tmp = first;
-                    first = second;
-                    second = tmp;
+                    ::std::mem::swap(&mut first, &mut second);
                 }
                 if second == max {
                     second = max - 1;
@@ -61,13 +63,14 @@ pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
                 let num = s.parse().unwrap_or(0);
                 if num < 1 || num > max {
                     println!("{}", err_msg.red());
-                    continue 'main;
+                    valid = false;
+                    break;
                 }
                 result.push(num);
             }
         }
-        return result;
     }
+    result
 }
 
 /// Parse range
@@ -75,7 +78,7 @@ fn parse_range(s: &str, max: usize) -> (usize, usize) {
     let mut splitted = s.split("..");
     let first = splitted.next().unwrap_or("1");
     let max_str = max.to_string();
-    let second = splitted.next().unwrap_or(max_str.as_str());
+    let second = splitted.next().unwrap_or(&max_str);
     let first = parse_one(first, 1);
     let second = parse_one(second, max);
     (first, second)
@@ -90,7 +93,7 @@ fn parse_one(s: &str, or: usize) -> usize {
 }
 
 /// Save hupas
-pub fn save_hupas(config: &Config, hupas: &Vec<Hupa>) {
+pub fn save_hupas(config: &Config, hupas: &[Hupa]) {
     let mut f = File::create(&config.metadata_path).expect("Can't create metadata file");
-    libhupa::write_metadata(&mut f, &hupas, config.metadata_format.clone()).expect("Can't write to metadata file");
+    libhupa::write_metadata(&mut f, &hupas.to_vec(), config.metadata_format.clone()).expect("Can't write to metadata file");
 }

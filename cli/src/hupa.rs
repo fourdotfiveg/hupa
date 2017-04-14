@@ -3,10 +3,9 @@ use colored::*;
 use humansize::FileSize;
 use io::*;
 use std::io::Write;
-use std::process::Command;
 use libhupa::*;
 
-/// Return list of hupa from hupas_names
+/// Return list of hupa from `hupas_names`
 pub fn resolve_names(hupas_names: &[String], hupas: &[Hupa]) -> Vec<Hupa> {
     let mut resolved = Vec::new();
     for hupa_name in hupas_names {
@@ -32,7 +31,7 @@ pub enum PrintOrder {
 }
 
 /// Interface for actions
-pub fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: PrintOrder, print: &str)
+pub fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: &PrintOrder, print: &str)
     where F: FnOnce(&Hupa) -> Result<()>
 {
     let mut stdout = ::std::io::stdout();
@@ -45,7 +44,7 @@ pub fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: PrintOrder, print: &str)
         .file_size(DEFAULT_FSO)
         .expect("Error while showing file size");
 
-    let (first, second, first_str, second_str) = match size_order {
+    let (first, second, first_str, second_str) = match *size_order {
         PrintOrder::BackupToOrigin => (backup, origin, "backup", "origin"),
         PrintOrder::OriginToBackup => (origin, backup, "origin", "backup"),
         PrintOrder::BackupToNull => {
@@ -79,12 +78,15 @@ pub fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: PrintOrder, print: &str)
 
 /// Select hupas
 pub fn select_hupas(hupas: &[Hupa], print: &str) -> Vec<Hupa> {
-    let mut selected = Vec::new();
     for (i, hupa) in hupas.iter().enumerate() {
         println!("[{}] {}: {}", i + 1, hupa.get_name(), hupa.get_desc());
     }
     println!("[{}] Cancel", hupas.len() + 1);
-    'main: loop {
+    let mut selected = Vec::new();
+    let mut valid = false;
+    while !valid {
+        selected = Vec::new();
+        valid = true;
         let idxs = read_line_usize(&format!("{} [1-{}]: ", print, hupas.len() + 1),
                                    &format!("You should enter a number between 1 and {}",
                                             hupas.len() + 1),
@@ -92,7 +94,8 @@ pub fn select_hupas(hupas: &[Hupa], print: &str) -> Vec<Hupa> {
         for idx in idxs {
             if idx == 0 || idx > hupas.len() + 1 {
                 println!("{} {}", idx.to_string().red(), " is not in the range".red());
-                continue 'main;
+                valid = false;
+                break;
             } else if idx == hupas.len() + 1 {
                 println!("Action cancelled");
                 return Vec::new();
@@ -100,6 +103,6 @@ pub fn select_hupas(hupas: &[Hupa], print: &str) -> Vec<Hupa> {
                 selected.push(hupas[idx - 1].clone());
             }
         }
-        return selected;
     }
+    selected
 }

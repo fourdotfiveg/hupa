@@ -12,9 +12,6 @@ mod macros;
 mod hupa;
 mod io;
 
-use hupa::*;
-use io::*;
-
 mod add;
 mod remove;
 mod modify;
@@ -32,8 +29,7 @@ use restore::*;
 use clean::*;
 
 use clap::AppSettings;
-use colored::*;
-use humansize::{FileSize, file_size_opts};
+use humansize::file_size_opts;
 use humansize::file_size_opts::FileSizeOpts;
 use libhupa::*;
 
@@ -86,12 +82,16 @@ fn main() {
             (@arg all: -a -all "Clean all hupas")
             (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))).get_matches();
 
+    let config_default = Config::default();
     let config = match matches.value_of("config") {
             Some(s) => Config::read_config_from_path(s),
             None => Config::read_config(),
         }
-        .unwrap_or(Config::default());
-    let mut hupas = read_metadata_from_config(&config).unwrap_or(Vec::new());
+        .unwrap_or(config_default);
+    let mut hupas = match read_metadata_from_config(&config) {
+        Ok(h) => h,
+        Err(_) => Vec::new(),
+    };
     if let Some(p) = matches.value_of("metadata") {
         let mut f = ::std::fs::File::open(p).expect(&format!("Can't open {}", p));
         hupas = read_metadata(&mut f, None).unwrap_or(hupas);
@@ -100,22 +100,22 @@ fn main() {
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
-            add_subcommand(&mut hupas, &config, sub_m);
+            add_subcommand(hupas, &config, sub_m);
         }
         ("remove", Some(sub_m)) => {
-            remove_subcommand(&mut hupas, &config, sub_m);
+            remove_subcommand(hupas, &config, sub_m);
         }
         ("modify", Some(sub_m)) => {
-            modify_subcommand(&mut hupas, &config, sub_m);
+            modify_subcommand(hupas, &config, sub_m);
         }
         ("print", Some(sub_m)) => {
-            print_subcommand(&hupas, sub_m);
+            print_subcommand(hupas, sub_m);
         }
         ("backup", Some(sub_m)) => {
             backup_subcommand(&hupas, sub_m);
         }
         ("restore", Some(sub_m)) => {
-            restore_subcommand(&hupas, sub_m);
+            restore_subcommand(hupas, sub_m);
         }
         ("clean", Some(sub_m)) => {
             clean_subcommand(&hupas, sub_m);

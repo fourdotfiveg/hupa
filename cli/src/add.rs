@@ -4,7 +4,7 @@ use io::*;
 use libhupa::*;
 
 /// Add subcommand
-pub fn add_subcommand(hupas: &mut Vec<Hupa>, config: &Config, sub_m: &ArgMatches) {
+pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches) {
     // TODO check if hupa is already used
     let count = sub_m
         .value_of("count")
@@ -29,6 +29,6 @@ pub fn add_subcommand(hupas: &mut Vec<Hupa>, config: &Config, sub_m: &ArgMatches
                       autobackup);
         hupas.push(hupa);
     }
-    save_hupas(&config, &hupas);
+    save_hupas(config, &hupas);
 
 }

@@ -3,14 +3,14 @@ use hupa::*;
 use libhupa::*;
 
 /// Clean subcommand
-pub fn clean_subcommand(hupas: &Vec<Hupa>, sub_m: &ArgMatches) {
+pub fn clean_subcommand(hupas: &[Hupa], sub_m: &ArgMatches) {
     if sub_m.is_present("all") {
-        clean(&hupas);
+        clean(hupas);
     } else if let Some(hupas_names) = sub_m.values_of("hupa") {
         let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
-        clean(&resolve_names(&hupas_names, &hupas));
+        clean(&resolve_names(&hupas_names, hupas));
     } else {
-        let hupas = select_hupas(&hupas, "Select hupas to clean");
+        let hupas = select_hupas(hupas, "Select hupas to clean");
         clean(&hupas);
     }
 }
@@ -18,9 +18,9 @@ pub fn clean_subcommand(hupas: &Vec<Hupa>, sub_m: &ArgMatches) {
 /// Clean hupas with interface
 pub fn clean(hupas: &[Hupa]) {
     for hupa in hupas {
-        exec_hupa(&hupa,
+        exec_hupa(hupa,
                   |h| h.delete_backup(),
-                  PrintOrder::BackupToNull,
+                  &PrintOrder::BackupToNull,
                   "Cleaning");
     }
 }

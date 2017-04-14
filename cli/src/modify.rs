@@ -4,7 +4,7 @@ use io::*;
 use libhupa::*;
 
 /// Modify subcommand
-pub fn modify_subcommand(hupas: &mut Vec<Hupa>, _config: &Config, sub_m: &ArgMatches) {
+pub fn modify_subcommand(mut hupas: Vec<Hupa>, _config: &Config, sub_m: &ArgMatches) {
     let mut hupas_to_modify = if let Some(hupas_names) = sub_m.values_of("hupa") {
         let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
         resolve_names(&hupas_names, &hupas)
