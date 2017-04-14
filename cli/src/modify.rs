@@ -44,6 +44,9 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
                     hupa.set_backup_parent(read_line("New backup parent: "))
                         .expect("Cannot reset backup parent");
                 }
+                5 => {
+                    hupa.set_origin_path(read_line("New origin path: "));
+                }
                 _ => {}
             }
         }

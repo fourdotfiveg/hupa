@@ -142,6 +142,11 @@ impl Hupa {
         Ok(())
     }
 
+    /// Set origin path of the hupa
+    pub fn set_origin_path<P: AsRef<Path>>(&mut self, origin_path: P) {
+        self.origin_path = origin_path.as_ref().to_path_buf();
+    }
+
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> PathBuf {
         let mut hupas = self.backup_parent.clone();
