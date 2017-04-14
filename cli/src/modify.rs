@@ -47,10 +47,12 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
                 5 => {
                     hupa.set_origin_path(read_line("New origin path: "));
                 }
+                6 => {
+                    hupa.set_autobackup(read_line_bool("Enable autobackup? [y/n]: ", ""));
+                }
                 _ => {}
             }
         }
     }
     save_hupas(config, &hupas);
-    // TODO
 }

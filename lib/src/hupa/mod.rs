@@ -147,6 +147,11 @@ impl Hupa {
         self.origin_path = origin_path.as_ref().to_path_buf();
     }
 
+    /// Set autobackup state
+    pub fn set_autobackup(&mut self, autobackup: bool) {
+        self.autobackup = autobackup;
+    }
+
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> PathBuf {
         let mut hupas = self.backup_parent.clone();

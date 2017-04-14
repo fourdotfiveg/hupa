@@ -40,7 +40,6 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 
 fn main() {
     // TODO add ability to modify config
-    // TODO add ability to modify hupa
     let matches = clap_app!(hupa =>
         (version: crate_version!())
         (author: "Bastien Badzioch <notkild@gmail.com>")
