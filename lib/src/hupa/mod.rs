@@ -106,7 +106,6 @@ impl Hupa {
 
     /// Set name of the hupa
     pub fn set_name(&mut self, name: String) -> Result<()> {
-        // TODO
         let old_backup_dir = self.backup_dir();
         self.name = name;
         let new_backup_dir = self.backup_dir();
@@ -119,6 +118,11 @@ impl Hupa {
             }
         }
         Ok(())
+    }
+
+    /// Set description of the hupa
+    pub fn set_desc(&mut self, desc: String) {
+        self.desc = desc;
     }
 
     /// Return the backup directory of the hupa

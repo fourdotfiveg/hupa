@@ -18,7 +18,7 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
         }
         println!("Hupa {}:", hupa.get_name().yellow().bold());
         println!("[1] Set name");
-        println!("[2] Set desc");
+        println!("[2] Set description");
         println!("[3] Set categories");
         println!("[4] Set backup parent");
         println!("[5] Set origin path");
@@ -31,9 +31,10 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
         for i in idxs {
             match i {
                 1 => {
-                    let name = read_line("New name: ");
-                    hupa.set_name(name).expect("Cannot rename hupa");
+                    hupa.set_name(read_line("New name: "))
+                        .expect("Cannot rename hupa");
                 }
+                2 => hupa.set_desc(read_line("New description: ")),
                 _ => {}
             }
         }
