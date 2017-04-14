@@ -15,6 +15,22 @@ mod io;
 use hupa::*;
 use io::*;
 
+mod add;
+mod remove;
+mod modify;
+mod print;
+mod backup;
+mod restore;
+mod clean;
+
+use add::*;
+use remove::*;
+use modify::*;
+use print::*;
+use backup::*;
+use restore::*;
+use clean::*;
+
 use clap::AppSettings;
 use colored::*;
 use humansize::{FileSize, file_size_opts};
@@ -29,7 +45,6 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 fn main() {
     // TODO add ability to modify config
     // TODO add ability to modify hupa
-    // TODO seperate each subcommand in module
     let matches = clap_app!(hupa =>
         (version: crate_version!())
         (author: "Bastien Badzioch <notkild@gmail.com>")
@@ -85,140 +100,25 @@ fn main() {
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
-            let count = sub_m
-                .value_of("count")
-                .unwrap_or("1")
-                .parse::<usize>()
-                .unwrap_or(1);
-            // TODO check if hupa is already used
-            for _ in 0..count {
-                let name = read_line("Name: ");
-                let desc = read_line("Description: ");
-                let categories = read_line("Categories (ex: os/linux): ");
-                let origin = read_line("Origin path: ");
-                #[cfg(unix)]
-                let origin = origin.replace('~', env!("HOME"));
-                let autobackup = read_line_bool("Enable autobackup (y/n)? ",
-                                                "The answer is yes or no");
-                println!("{} is now added.", name.yellow());
-                let hupa = Hupa::new(name,
-                                     desc,
-                                     categories.split('/').map(|s| s.to_string()).collect(),
-                                     Hupa::get_default_backup_parent().expect("Can't get default backup parent"),
-                                     origin,
-                                     autobackup);
-                hupas.push(hupa);
-            }
-            save_hupas(&config, &hupas);
+            add_subcommand(&mut hupas, &config, sub_m);
         }
         ("remove", Some(sub_m)) => {
-            // TODO show to the user which one is remove
-            // TODO add security
-            let hupas_to_remove = if let Some(hupas_names) = sub_m.values_of("hupa") {
-                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
-                resolve_names(&hupas_names, &hupas)
-            } else {
-                select_hupas(&hupas, "Select hupas to remove")
-            };
-            let hupas = hupas
-                .into_iter()
-                .filter(|h| !hupas_to_remove.contains(h))
-                .collect::<Vec<Hupa>>();
-            for h in &hupas_to_remove {
-                println!("{} is now removed.", h.get_name().yellow().bold());
-            }
-            save_hupas(&config, &hupas);
+            remove_subcommand(&mut hupas, &config, sub_m);
         }
         ("modify", Some(sub_m)) => {
-            let mut hupas_to_modify = if let Some(hupas_names) = sub_m.value_of("hupa") {
-                let hupas_names: Vec<String> = hupas_names.iter().map(|s| s.to_string()).collect();
-                resolve_names(&hupas_names, &hupas)
-            } else {
-                select_hupas(&hupas, "Select hupas to modify")
-            };
-            for hupa in &mut hupas_to_modify {
-                println!("Hupa {}:", hupa.get_name());
-                println!("[1] Set name");
-                println!("[2] Set desc");
-                println!("[3] Set categories");
-                println!("[4] Set backup parent");
-                println!("[5] Set origin path");
-                println!("[6] Set autobackup");
-                println!("[7] Cancel");
-                let readed = read_line_usize("Select action [1-7]: ", "", 7);
-            }
-            // TODO
+            modify_subcommand(&mut hupas, &config, sub_m);
         }
         ("print", Some(sub_m)) => {
-            for hupa in &hupas {
-                let mut size_b = ColoredString::default();
-                let mut size_o = ColoredString::default();
-                if sub_m.is_present("size") {
-                    size_b = format!(" ({})",
-                                     hupa.get_backup_size()
-                                         .unwrap_or(0)
-                                         .file_size(DEFAULT_FSO)
-                                         .expect("Error when showing size"))
-                            .bold();
-                    size_o = format!(" ({})",
-                                     hupa.get_origin_size()
-                                         .unwrap_or(0)
-                                         .file_size(DEFAULT_FSO)
-                                         .expect("Error when showing size"))
-                            .bold();
-                }
-                let autobackup = if hupa.is_autobackup_enabled() {
-                    format!("autobackup: {}", "enabled".green())
-                } else {
-                    format!("autobackup: {}", "disabled".red())
-                };
-                println!("{}/{}{} {} {}{}:\n{}\ndescription: {}\n",
-                         hupa.get_categories_str().bold(),
-                         hupa.get_name().yellow().bold(),
-                         size_b,
-                         "<->".bold(),
-                         hupa.get_origin().display().to_string().bold(),
-                         size_o,
-                         autobackup,
-                         hupa.get_desc().dimmed());
-                hupa.needs_root();
-            }
+            print_subcommand(&hupas, sub_m);
         }
         ("backup", Some(sub_m)) => {
-            if sub_m.is_present("all") {
-                backup(&hupas);
-            } else if let Some(hupas_names) = sub_m.values_of("hupa") {
-                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
-                backup(&resolve_names(&hupas_names, &hupas));
-            } else {
-                let hupas = select_hupas(&hupas, "Select hupas to backup");
-                backup(&hupas);
-            }
+            backup_subcommand(&hupas, sub_m);
         }
         ("restore", Some(sub_m)) => {
-            let hupas = if sub_m.is_present("all") {
-                hupas
-            } else if let Some(hupas_names) = sub_m.values_of("hupa") {
-                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
-                resolve_names(&hupas_names, &hupas)
-            } else {
-                select_hupas(&hupas, "Select hupas to restore")
-            };
-            #[cfg(not(unix))]
-            restore(&hupas);
-            #[cfg(unix)]
-            restore(&hupas, sub_m.is_present("ignore_root"));
+            restore_subcommand(&hupas, sub_m);
         }
         ("clean", Some(sub_m)) => {
-            if sub_m.is_present("all") {
-                clean(&hupas);
-            } else if let Some(hupas_names) = sub_m.values_of("hupa") {
-                let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
-                clean(&resolve_names(&hupas_names, &hupas));
-            } else {
-                let hupas = select_hupas(&hupas, "Select hupas to clean");
-                clean(&hupas);
-            }
+            clean_subcommand(&hupas, sub_m);
         }
         (s, _) => println!("`{}` is not supported yet", s),
     }
