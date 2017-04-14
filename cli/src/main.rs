@@ -9,7 +9,7 @@ extern crate libhupa;
 
 #[macro_use]
 mod macros;
-mod hupa;
+mod common;
 mod io;
 
 mod add;
