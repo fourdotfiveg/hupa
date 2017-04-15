@@ -6,8 +6,6 @@ use libhupa::*;
 
 /// Remove subcommand
 pub fn remove_subcommand(hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches) {
-    // TODO show to the user which one is remove
-    // TODO add security
     let hupas_to_remove = if let Some(hupas_names) = sub_m.values_of("hupa") {
         let hupas_names: Vec<String> = hupas_names.map(|s| s.to_string()).collect();
         resolve_names(&hupas_names, &hupas)

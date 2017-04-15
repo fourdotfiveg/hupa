@@ -12,7 +12,6 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
     } else {
         select_hupas(&hupas, "Select hupas to modify")
     };
-    // TODO show current value
     for hupa in &mut hupas {
         if !hupas_to_modify.contains(hupa) {
             continue;
@@ -29,23 +28,41 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
         for i in idxs {
             match i {
                 1 => {
+                    println!("Current name: {}", hupa.get_name());
                     hupa.set_name(read_line("New name: "))
                         .expect("Cannot rename hupa");
                 }
-                2 => hupa.set_desc(read_line("New description: ")),
+                2 => {
+                    println!("Current desc: {}", hupa.get_desc());
+                    hupa.set_desc(read_line("New description: "));
+                }
                 3 => {
+                    println!("Current categories: {}",
+                             hupa.get_categories()
+                                 .iter()
+                                 .map(|s| format!("{}/", s))
+                                 .collect::<String>());
                     let categories = read_line("New categories (ex: os/linux): ");
                     hupa.set_categories(categories.split('/').map(|s| s.to_string()).collect())
                         .expect("Cannot reset categories");
                 }
                 4 => {
+                    println!("Current backup parent: {}",
+                             hupa.get_backup_parent().display());
                     hupa.set_backup_parent(read_line("New backup parent: "))
                         .expect("Cannot reset backup parent");
                 }
                 5 => {
+                    println!("Current origin path: {}", hupa.get_origin().display());
                     hupa.set_origin_path(read_line("New origin path: "));
                 }
                 6 => {
+                    let print = if hupa.is_autobackup_enabled() {
+                        "enabled"
+                    } else {
+                        "disabled"
+                    };
+                    println!("Current autobackup state: {}", print);
                     hupa.set_autobackup(read_line_bool("Enable autobackup? [y/n]: ", ""));
                 }
                 _ => {}
