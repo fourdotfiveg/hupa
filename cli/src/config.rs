@@ -32,6 +32,12 @@ pub fn config_subcommand(mut config: Config) {
             _ => {}
         }
     }
-    // TODO add security
-    config.save_config().expect("Can't save config");
+    println!("New config:");
+    println!("Metadata path: {}", config.metadata_path.display());
+    println!("Metadata format: {}", config.metadata_format);
+    println!("Autobackup interval: {}", config.autobackup_interval);
+    let result = read_line_bool("Do you want to save this config? [y/n] ", "");
+    if result {
+        config.save_config().expect("Can't save config");
+    }
 }
