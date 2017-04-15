@@ -5,6 +5,7 @@ authors = ["notkild <notkild@gmail.com>"]
 
 [dependencies]
 app_dirs = "1.1"
+clap = "2.21"
 daemonize = "0.2"
 
 [dependencies.libhupa]

@@ -1,6 +1,8 @@
 #![cfg(unix)]
 // TODO support for windows
 extern crate app_dirs;
+#[macro_use]
+extern crate clap;
 extern crate daemonize;
 extern crate libhupa;
 
@@ -8,14 +10,37 @@ use daemonize::Daemonize;
 use libhupa::*;
 use std::fs::File;
 use std::io::Write;
-use std::path::PathBuf;
 use std::time::Duration;
 
 fn main() {
     // TODO make daemon receive command from cli
     // TODO make daemon check update
-    let config = Config::read_config().unwrap_or(Config::default());
-    let hupas = read_metadata_from_config(&config).unwrap();
+    let matches = clap_app!(hupad =>
+            (version: crate_version!())
+            (author: "Bastien Badzioch <notkild@gmail.com>")
+            (about: "Hupa daemon is used as a server or as a backup daemon")
+            (@arg config: -c --config +takes_value "Set config path")
+            (@arg metadata: -m --metadata +takes_value "Set metadata path")
+            (@arg interval: -i --interval +takes_value "Set backup interval")
+            (@arg server: -s --server "Enable server mode")
+            (@arg no_backup: --no-backup "Disable auto backup")
+        )
+            .get_matches();
+    let config_default = Config::default();
+    let config = match matches.value_of("config") {
+            Some(s) => Config::read_config_from_path(s),
+            None => Config::read_config(),
+        }
+        .unwrap_or(config_default);
+    let mut hupas = match read_metadata_from_config(&config) {
+        Ok(h) => h,
+        Err(_) => Vec::new(),
+    };
+    if let Some(p) = matches.value_of("metadata") {
+        let mut f = ::std::fs::File::open(p).expect(&format!("Can't open {}", p));
+        hupas = read_metadata(&mut f, &None).unwrap_or(hupas);
+    }
+
     let daemonize = Daemonize::new();
     let path = app_dirs::app_root(app_dirs::AppDataType::UserCache, &APP_INFO)
         .unwrap()
@@ -40,7 +65,7 @@ fn main() {
                         }
                     }
                 }
-                write!(file, "Waiting {} secs...\n", config.autobackup_interval);
+                let _ = write!(file, "Waiting {} secs...\n", config.autobackup_interval);
                 ::std::thread::sleep(Duration::from_secs(config.autobackup_interval));
             }
         }

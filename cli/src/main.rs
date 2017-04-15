@@ -41,6 +41,7 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 };
 
 fn main() {
+    // TODO add argument 'as-user' to override home
     let matches = clap_app!(hupa =>
         (version: crate_version!())
         (author: "Bastien Badzioch <notkild@gmail.com>")
