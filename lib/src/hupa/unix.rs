@@ -3,16 +3,21 @@
 use error::*;
 use libc::*;
 use std::os::unix::fs::*;
+use std::path::Path;
 use super::*;
 
 impl Hupa {
-    /// Set euid to restore file
-    pub fn set_eid(&self) -> Result<()> {
+    /// Set eid
+    pub fn set_eid<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let uid = unsafe { getuid() };
         if uid != 0 {
             return Ok(());
         }
-        let metadata = self.origin_path.metadata()?;
+        let path = path.as_ref();
+        let metadata = match path.metadata() {
+            Ok(m) => m,
+            Err(_) => path.parent().unwrap().metadata()?,
+        };
         let file_uid = metadata.uid();
         let file_gid = metadata.gid();
         // Reset effective uid for gid just for safety
@@ -20,6 +25,21 @@ impl Hupa {
         unsafe { setresgid(0, file_gid, 0) };
         unsafe { setresuid(0, file_uid, 0) };
         Ok(())
+    }
+
+    /// Set eid to backup file
+    ///
+    /// Use $HOME for getting file permissions
+    pub fn set_eid_backup(&self) -> Result<()> {
+        let home = ::std::env::var("HOME")?;
+        self.set_eid(home)
+    }
+
+    /// Set eid to restore file
+    ///
+    /// Use origin path for getting file permissions
+    pub fn set_eid_restore(&self) -> Result<()> {
+        self.set_eid(&self.origin_path)
     }
 
     /// Check if user needs to be root to restore this hupa

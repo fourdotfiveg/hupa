@@ -194,7 +194,7 @@ impl Hupa {
             }
         }
         #[cfg(unix)]
-        self.set_eid()?;
+        self.set_eid_backup()?;
         // TODO add file sync
         self.delete_backup()?;
         fs::create_dir_all(&backup_dir.parent().unwrap())?;
@@ -209,7 +209,7 @@ impl Hupa {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
         }
         #[cfg(unix)]
-        self.set_eid()?;
+        self.set_eid_restore()?;
         // TODO add file sync
         self.delete_origin()?;
         copy_all(&backup_dir, &self.origin_path)?;

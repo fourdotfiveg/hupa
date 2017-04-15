@@ -5,6 +5,7 @@ error_chain! {
         AppDirs(::app_dirs::AppDirsError) #[doc = "Error from app_dirs crate"];
         Json(::json::Error) #[doc = "Error from json crate"];
         Io(::std::io::Error) #[doc = "IO error"];
+        Var(::std::env::VarError) #[doc = "Var error"];
     }
 
     errors {
