@@ -2,6 +2,7 @@
 
 use error::*;
 use libc::*;
+use std::fs::Metadata;
 use std::os::unix::fs::*;
 use std::path::Path;
 use super::*;
@@ -14,7 +15,7 @@ impl Hupa {
             return Ok(());
         }
         let path = path.as_ref();
-        let metadata = match path.metadata() {
+        let metadata = match Self::get_metadata(path) {
             Ok(m) => m,
             Err(_) => path.parent().unwrap().metadata()?,
         };
@@ -40,6 +41,18 @@ impl Hupa {
     /// Use origin path for getting file permissions
     pub fn set_eid_restore(&self) -> Result<()> {
         self.set_eid(&self.origin_path)
+    }
+
+    /// Get metadata or get parent one
+    pub fn get_metadata<P: AsRef<Path>>(path: P) -> Result<Metadata> {
+        let path = path.as_ref();
+        if let Ok(m) = path.metadata() {
+            return Ok(m);
+        } else if let Some(p) = path.parent() {
+            return Self::get_metadata(p);
+        } else {
+            path.metadata().map_err(|e| e.into())
+        }
     }
 
     /// Check if user needs to be root to restore this hupa

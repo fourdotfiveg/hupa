@@ -212,6 +212,11 @@ impl Hupa {
         self.set_eid_restore()?;
         // TODO add file sync
         self.delete_origin()?;
+        if let Some(p) = self.origin_path.parent() {
+            if !p.exists() {
+                fs::create_dir_all(p)?;
+            }
+        }
         copy_all(&backup_dir, &self.origin_path)?;
         Ok(())
     }
