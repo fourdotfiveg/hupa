@@ -90,7 +90,10 @@ fn main() {
             (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))).get_matches();
 
     if let Some(u) = get_arg_recursive(&matches, "user") {
-        set_home(u.as_str());
+        #[cfg(target_os = "macos")]
+        set_home(u.as_str(), "/Users");
+        #[cfg(all(not(target_os = "macos"), unix))]
+        set_home(u.as_str(), "/home");
     }
 
     let config_default = Config::default();
@@ -149,24 +152,18 @@ fn get_arg_recursive(matches: &ArgMatches, arg: &str) -> Option<String> {
     }
 }
 
-#[cfg(target_os = "macos")]
-fn set_home(user: &str) {
-    if user == "root" {
+#[cfg(unix)]
+fn set_home(user: &str, home: &str) {
+    if unsafe { libc::getuid() } != 0 {
+        println!("You are not allowed to switch user!");
+        let mut args = std::env::args()
+            .map(|s| format!("{} ", s))
+            .collect::<String>();
+        args.pop();
+        println!("Run instead `sudo {}`", args);
         return;
     }
-    if let Ok(id) = user.parse::<u32>() {
-        let name = unsafe { (*libc::getpwuid(id)).pw_name };
-        let name = unsafe { ::std::ffi::CString::from_raw(name) };
-        let name = name.into_string()
-            .expect("Cannot convert CString to String");
-        env::set_var("HOME", &format!("/Users/{}", name));
-    } else {
-        env::set_var("HOME", &format!("/Users/{}", user));
-    }
-}
-
-#[cfg(all(not(target_os = "macos"), unix))]
-fn set_home(user: &str) {
+    let user = user.trim();
     if user == "0" || user == "root" {
         return;
     }
@@ -175,9 +172,9 @@ fn set_home(user: &str) {
         let name = unsafe { ::std::ffi::CString::from_raw(name) };
         let name = name.into_string()
             .expect("Cannot convert CString to String");
-        env::set_var("HOME", &format!("/home/{}", name));
+        env::set_var("HOME", &format!("/{}/{}", home, name));
     } else {
-        env::set_var("HOME", &format!("/home/{}", user));
+        env::set_var("HOME", &format!("/{}/{}", home, user));
     }
 }
 
