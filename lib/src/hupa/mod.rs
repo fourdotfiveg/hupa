@@ -42,11 +42,11 @@ pub struct Hupa {
 
 impl Hupa {
     /// Default constructor
-    pub fn new<P: AsRef<Path>, S: AsRef<str>, T: AsRef<Path>>(name: S,
+    pub fn new<P: AsRef<Path>, Q: AsRef<Path>, S: AsRef<str>>(name: S,
                                                               desc: S,
                                                               categories: Vec<String>,
                                                               backup_parent: P,
-                                                              origin_path: T,
+                                                              origin_path: Q,
                                                               autobackup: bool)
                                                               -> Hupa {
         Hupa {
@@ -193,7 +193,7 @@ impl Hupa {
                 return Ok(());
             }
         }
-        // TODO add overwrite and skip exist
+        // TODO add file sync
         self.delete_backup()?;
         fs::create_dir_all(&backup_dir.parent().unwrap())?;
         copy_all(&self.origin_path, &backup_dir)?;
@@ -209,7 +209,7 @@ impl Hupa {
         }
         #[cfg(unix)]
         self.set_eid()?;
-        // TODO add overwrite and skip exist
+        // TODO add file sync
         self.delete_origin()?;
         copy_all(&backup_dir, &self.origin_path)?;
         Ok(())
@@ -238,7 +238,7 @@ impl Hupa {
 /// `from` - File or directory to copy
 ///
 /// `to` - Destination path
-fn copy_all<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
+fn copy_all<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<()> {
     let from = from.as_ref();
     if from.is_file() {
         fs::copy(from, to)?;
@@ -250,7 +250,7 @@ fn copy_all<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
 }
 
 /// Move dir to new dir
-fn move_all<P: AsRef<Path>, R: AsRef<Path>>(from: P, to: R) -> Result<()> {
+fn move_all<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<()> {
     let (from, to) = (from.as_ref(), to.as_ref());
     copy_dir(&from, to)?;
     if from.is_dir() {

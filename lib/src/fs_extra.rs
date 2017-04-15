@@ -5,8 +5,7 @@ use std::fs;
 use std::path::Path;
 
 /// Copy a directory
-// TODO add overwrite and skip_exists
-pub fn copy_dir<P: AsRef<Path>, R: AsRef<Path>>(from: P, to: R) -> Result<u64> {
+pub fn copy_dir<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<u64> {
     let (from, to) = (from.as_ref(), to.as_ref());
 
     if !from.exists() {
