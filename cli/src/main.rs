@@ -86,7 +86,7 @@ fn main() {
             (@arg size: -s --size "Show files sizes"))
         (@subcommand clean =>
             (about: "Clean hupa(s)")
-            (@arg all: -a -all "Clean all hupas")
+            (@arg all: -a --all "Clean all hupas")
             (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))).get_matches();
 
     if let Some(u) = get_arg_recursive(&matches, "user") {
