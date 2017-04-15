@@ -197,7 +197,9 @@ impl Hupa {
         self.set_eid_backup()?;
         // TODO add file sync
         self.delete_backup()?;
-        fs::create_dir_all(&backup_dir.parent().unwrap())?;
+        if let Some(p) = backup_dir.parent() {
+            fs::create_dir_all(p)?;
+        }
         copy_all(&self.origin_path, &backup_dir)?;
         Ok(())
     }
@@ -213,9 +215,7 @@ impl Hupa {
         // TODO add file sync
         self.delete_origin()?;
         if let Some(p) = self.origin_path.parent() {
-            if !p.exists() {
-                fs::create_dir_all(p)?;
-            }
+            fs::create_dir_all(p)?;
         }
         copy_all(&backup_dir, &self.origin_path)?;
         Ok(())
