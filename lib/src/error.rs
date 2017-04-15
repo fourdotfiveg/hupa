@@ -28,5 +28,15 @@ error_chain! {
             description("Origin file is missing")
             display("Origin file is misssing, backup can't be made: {}", p)
         }
+        /// Error when there is not metadata path in config
+        MissingMetadataPath {
+            description("There is not metadata path in config")
+            display("There is not metadata path in config")
+        }
+        /// Error when there is not metadata format in config
+        MissingMetadataFormat {
+            description("There is not metadata format in config")
+            display("There is not metadata format in config")
+        }
     }
 }

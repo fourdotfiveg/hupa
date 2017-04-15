@@ -43,10 +43,15 @@ impl Config {
         let mut buf = String::new();
         stream.read_to_string(&mut buf)?;
         let json = ::json::parse(&buf)?;
-        // TODO better error handling
-        let metadata_path = json["metadata_path"].as_str().unwrap();
-        let metadata_format = json["metadata_format"].as_str().unwrap();
-        let autobackup_interval = json["autobackup_interval"].as_u64().unwrap();
+        let metadata_path = match json["metadata_path"].as_str() {
+            Some(s) => s,
+            None => bail!(ErrorKind::MissingMetadataPath),
+        };
+        let metadata_format = match json["metadata_format"].as_str() {
+            Some(s) => s,
+            None => bail!(ErrorKind::MissingMetadataFormat),
+        };
+        let autobackup_interval = json["autobackup_interval"].as_u64().unwrap_or(3600);
         Ok(Config::new(metadata_path,
                        MetadataFormat::from_str(metadata_format)?,
                        autobackup_interval))
