@@ -193,6 +193,8 @@ impl Hupa {
                 return Ok(());
             }
         }
+        #[cfg(unix)]
+        self.set_eid()?;
         // TODO add file sync
         self.delete_backup()?;
         fs::create_dir_all(&backup_dir.parent().unwrap())?;
