@@ -7,6 +7,7 @@ mod json;
 use config::*;
 use error::*;
 use hupa::Hupa;
+use std::fmt;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::str::FromStr;
@@ -16,6 +17,15 @@ use std::str::FromStr;
 pub enum MetadataFormat {
     /// Read and write metadata to json format
     Json,
+}
+
+/// Display for MetadataFormat
+impl fmt::Display for MetadataFormat {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            MetadataFormat::Json => write!(f, "JSON"),
+        }
+    }
 }
 
 /// Convert str into `MetadataFormat`
