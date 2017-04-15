@@ -202,7 +202,6 @@ impl Hupa {
 
     /// Restore hupa
     pub fn restore(&self) -> Result<()> {
-        // TODO restore_with_progress
         let backup_dir = self.backup_dir();
         if !backup_dir.exists() {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
