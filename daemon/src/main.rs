@@ -23,7 +23,7 @@ fn main() {
             (@arg metadata: -m --metadata +takes_value "Set metadata path")
             (@arg interval: -i --interval +takes_value "Set backup interval")
             (@arg server: -s --server "Enable server mode")
-            (@arg no_backup: --no-backup "Disable auto backup")
+            (@arg no_backup: --("no-backup") "Disable auto backup")
         )
             .get_matches();
     let config_default = Config::default();

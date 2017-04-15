@@ -11,3 +11,6 @@ humansize = "1.0"
 
 [dependencies.libhupa]
 path = "../lib"
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"

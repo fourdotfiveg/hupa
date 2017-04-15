@@ -5,6 +5,8 @@ extern crate app_dirs;
 extern crate clap;
 extern crate colored;
 extern crate humansize;
+#[cfg(unix)]
+extern crate libc;
 extern crate libhupa;
 
 #[macro_use]
@@ -31,9 +33,11 @@ use restore::*;
 use clean::*;
 
 use clap::AppSettings;
+use clap::ArgMatches;
 use humansize::file_size_opts;
 use humansize::file_size_opts::FileSizeOpts;
 use libhupa::*;
+use std::env;
 
 const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
     space: false,
@@ -41,7 +45,6 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 };
 
 fn main() {
-    // TODO add argument 'as-user' to override home
     let matches = clap_app!(hupa =>
         (version: crate_version!())
         (author: "Bastien Badzioch <notkild@gmail.com>")
@@ -49,6 +52,7 @@ fn main() {
         (setting: AppSettings::SubcommandRequiredElseHelp)
         (@arg config: -c --config +global +takes_value "Set config path")
         (@arg metadata: --metadata +global +takes_value "Set metadata path")
+        (@arg user: --("as-user") +global +takes_value "Run hupa as another user, only for unix")
         (@subcommand add =>
             (about: "Add a new hupa")
             (@arg count: -n --count +takes_value "Set the number of hupa to add"))
@@ -69,7 +73,7 @@ fn main() {
             (about: "Restore hupa(s)")
             (@arg all: -a --all conflicts_with[hupa] "Restore all hupas")
             (@arg hupa: +takes_value +multiple "Hupa(s) to restore")
-            (@arg ignore_root: -i --ignore-root "Ignore hupas that need root access, only for unix"))
+            (@arg ignore_root: -i --("ignore-root") "Ignore hupas that need root access, only for unix"))
         (@subcommand generate =>
             (about: "Generate an archive of all hupas")
             (@arg format: -f --format +takes_value possible_value[tar zip] "File format to use for achive")
@@ -85,8 +89,12 @@ fn main() {
             (@arg all: -a -all "Clean all hupas")
             (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))).get_matches();
 
+    if let Some(u) = get_arg_recursive(&matches, "user") {
+        set_home(u.as_str());
+    }
+
     let config_default = Config::default();
-    let config = match matches.value_of("config") {
+    let config = match get_arg_recursive(&matches, "config") {
             Some(s) => Config::read_config_from_path(s),
             None => Config::read_config(),
         }
@@ -129,3 +137,49 @@ fn main() {
         (s, _) => println!("`{}` is not supported yet", s),
     }
 }
+
+fn get_arg_recursive(matches: &ArgMatches, arg: &str) -> Option<String> {
+    if let Some(val) = matches.value_of(arg) {
+        return Some(val.to_string());
+    } else if let Some(sub) = matches.subcommand_name() {
+        let sub_m = matches.subcommand_matches(sub).unwrap();
+        return get_arg_recursive(sub_m, arg);
+    } else {
+        None
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn set_home(user: &str) {
+    if user == "root" {
+        return;
+    }
+    if let Ok(id) = user.parse::<u32>() {
+        let name = unsafe { (*libc::getpwuid(id)).pw_name };
+        let name = unsafe { ::std::ffi::CString::from_raw(name) };
+        let name = name.into_string()
+            .expect("Cannot convert CString to String");
+        env::set_var("HOME", &format!("/Users/{}", name));
+    } else {
+        env::set_var("HOME", &format!("/Users/{}", user));
+    }
+}
+
+#[cfg(all(not(target_os = "macos"), unix))]
+fn set_home(user: &str) {
+    if user == "0" || user == "root" {
+        return;
+    }
+    if let Ok(id) = user.parse::<u32>() {
+        let name = unsafe { (*libc::getpwuid(id)).pw_name };
+        let name = unsafe { ::std::ffi::CString::from_raw(name) };
+        let name = name.into_string()
+            .expect("Cannot convert CString to String");
+        env::set_var("HOME", &format!("/home/{}", name));
+    } else {
+        env::set_var("HOME", &format!("/home/{}", user));
+    }
+}
+
+#[cfg(not(unix))]
+fn set_home(_user: &str) {}
