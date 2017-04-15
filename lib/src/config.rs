@@ -7,6 +7,7 @@ use metadata::MetadataFormat;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
 /// Configuration structure to read and write config.
 #[derive(Clone, Debug)]
@@ -75,7 +76,7 @@ impl Config {
         let mut f = File::create(&path)?;
         let json: JsonValue = self.clone().into();
         let json_str = ::json::stringify_pretty(json, 2);
-        f.write(json_str.as_bytes())?;
+        f.write_all(json_str.as_bytes())?;
         Ok(())
     }
 }

@@ -19,7 +19,7 @@ impl Into<JsonValue> for Hupa {
 }
 
 /// Convert json to hupas
-pub fn json_to_hupas(json: JsonValue) -> Result<Vec<Hupa>> {
+pub fn json_to_hupas(json: &JsonValue) -> Result<Vec<Hupa>> {
     let mut hupas = Vec::new();
     if !json.is_array() {
         bail!(ErrorKind::InvalidMetadata);
@@ -29,8 +29,7 @@ pub fn json_to_hupas(json: JsonValue) -> Result<Vec<Hupa>> {
         let desc = member["desc"].as_str().unwrap();
         let categories_json = &member["categories"];
         let mut categories = Vec::new();
-        for i in 0..categories_json.len() {
-            let category = &categories_json[i];
+        for category in categories_json.members() {
             categories.push(category.as_str().unwrap().to_owned());
         }
         let backup_parent = member["backup_parent"].as_str().unwrap();

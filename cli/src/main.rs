@@ -96,7 +96,7 @@ fn main() {
     };
     if let Some(p) = matches.value_of("metadata") {
         let mut f = ::std::fs::File::open(p).expect(&format!("Can't open {}", p));
-        hupas = read_metadata(&mut f, None).unwrap_or(hupas);
+        hupas = read_metadata(&mut f, &None).unwrap_or(hupas);
     }
 
 

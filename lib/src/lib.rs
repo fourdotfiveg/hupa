@@ -24,7 +24,7 @@ pub use metadata::*;
 
 use app_dirs::AppInfo;
 
-/// APP_INFO is used for the crate `app_dirs` to get config dir, data dir and else.
+/// `APP_INFO` is used for the crate `app_dirs` to get config dir, data dir and else.
 pub const APP_INFO: AppInfo = AppInfo {
     name: "hupa",
     author: "notkild",
