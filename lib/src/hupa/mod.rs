@@ -188,11 +188,12 @@ impl Hupa {
         if !self.origin_path.exists() {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
         }
-        if let Ok(b) = self.has_origin_changed() {
-            if b {
-                return Ok(());
-            }
-        }
+        // TODO fix
+        // if let Ok(b) = self.has_origin_changed() {
+        //     if b {
+        //         return Ok(());
+        //     }
+        // }
         #[cfg(unix)]
         self.set_eid_backup()?;
         // TODO add file sync

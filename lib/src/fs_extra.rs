@@ -29,6 +29,7 @@ pub fn copy_dir<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<u64> {
         } else if path.is_file() {
             result += fs::copy(&path, &to)?;
         }
+        to.pop();
     }
     Ok(result)
 }
