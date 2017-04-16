@@ -10,7 +10,9 @@ use daemonize::Daemonize;
 use libhupa::*;
 use std::fs::File;
 use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::time::Duration;
+use std::time::SystemTime;
 
 fn main() {
     // TODO make daemon check update
@@ -34,15 +36,14 @@ fn main() {
             config.autobackup_interval = i;
         }
     }
+    if let Some(p) = matches.value_of("metadata") {
+        config.metadata_path = PathBuf::from(p);
+    }
     let config = config;
     let mut hupas = match read_metadata_from_config(&config) {
         Ok(h) => h,
         Err(_) => Vec::new(),
     };
-    if let Some(p) = matches.value_of("metadata") {
-        let mut f = ::std::fs::File::open(p).expect(&format!("Can't open {}", p));
-        hupas = read_metadata(&mut f, &None).unwrap_or(hupas);
-    }
 
     let daemonize = Daemonize::new();
     let path = app_dirs::app_root(app_dirs::AppDataType::UserCache, &APP_INFO)
@@ -51,7 +52,17 @@ fn main() {
     let mut file = File::create(&path).unwrap();
     match daemonize.start() {
         Ok(_) => {
+            let mut last_change = get_last_change(&config.metadata_path);
             loop {
+                let new_last_change = get_last_change(&config.metadata_path);
+                if last_change != new_last_change {
+                    let _ = write!(file, "Found new change in metadata...");
+                    hupas = match read_metadata_from_config(&config) {
+                        Ok(h) => h,
+                        Err(_) => hupas,
+                    };
+                    last_change = new_last_change;
+                }
                 for hupa in &hupas {
                     if !hupa.is_autobackup_enabled() {
                         continue;
@@ -72,6 +83,15 @@ fn main() {
                 ::std::thread::sleep(Duration::from_secs(config.autobackup_interval));
             }
         }
-        Err(e) => println!("{}", e),
+        Err(e) => write!(file, "Error: {}", e).expect("Can't write to file"),
     }
+}
+
+fn get_last_change<P: AsRef<Path>>(path: P) -> SystemTime {
+    let metadata = path.as_ref()
+        .metadata()
+        .expect("Can't get metadata info");
+    metadata
+        .modified()
+        .expect("Can't get last time modified")
 }
