@@ -174,9 +174,12 @@ impl Hupa {
 
     /// Check if origin has changed
     pub fn has_origin_changed(&self) -> Result<bool> {
+        let backup = self.backup_dir();
+        if get_size(&backup)? != get_size(&self.origin_path)? {
+            return Ok(true);
+        }
         let origin_metadata = self.origin_path.metadata()?;
         let origin_time = origin_metadata.modified()?;
-        let backup = self.backup_dir();
         let backup_metadata = backup.metadata()?;
         let backup_time = backup_metadata.modified()?;
         Ok(origin_time < backup_time)
@@ -188,12 +191,11 @@ impl Hupa {
         if !self.origin_path.exists() {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
         }
-        // TODO fix
-        // if let Ok(b) = self.has_origin_changed() {
-        //     if b {
-        //         return Ok(());
-        //     }
-        // }
+        if let Ok(b) = self.has_origin_changed() {
+            if b {
+                return Ok(());
+            }
+        }
         #[cfg(unix)]
         self.set_eid_backup()?;
         // TODO add file sync
