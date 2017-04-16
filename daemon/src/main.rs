@@ -13,7 +13,6 @@ use std::io::Write;
 use std::time::Duration;
 
 fn main() {
-    // TODO make daemon receive command from cli
     // TODO make daemon check update
     let matches = clap_app!(hupad =>
             (version: crate_version!())
@@ -22,16 +21,20 @@ fn main() {
             (@arg config: -c --config +takes_value "Set config path")
             (@arg metadata: -m --metadata +takes_value "Set metadata path")
             (@arg interval: -i --interval +takes_value "Set backup interval")
-            (@arg server: -s --server "Enable server mode")
-            (@arg no_backup: --("no-backup") "Disable auto backup")
         )
             .get_matches();
     let config_default = Config::default();
-    let config = match matches.value_of("config") {
+    let mut config = match matches.value_of("config") {
             Some(s) => Config::read_config_from_path(s),
             None => Config::read_config(),
         }
         .unwrap_or(config_default);
+    if let Some(b) = matches.value_of("interval") {
+        if let Ok(i) = b.parse() {
+            config.autobackup_interval = i;
+        }
+    }
+    let config = config;
     let mut hupas = match read_metadata_from_config(&config) {
         Ok(h) => h,
         Err(_) => Vec::new(),
