@@ -15,7 +15,6 @@ use std::time::Duration;
 use std::time::SystemTime;
 
 fn main() {
-    // TODO make daemon check update
     let matches = clap_app!(hupad =>
             (version: crate_version!())
             (author: "Bastien Badzioch <notkild@gmail.com>")
@@ -45,6 +44,8 @@ fn main() {
         Err(_) => Vec::new(),
     };
 
+    let start = SystemTime::now();
+
     let daemonize = Daemonize::new();
     let path = app_dirs::app_root(app_dirs::AppDataType::UserCache, &APP_INFO)
         .unwrap()
@@ -56,7 +57,8 @@ fn main() {
             loop {
                 let new_last_change = get_last_change(&config.metadata_path);
                 if last_change != new_last_change {
-                    let _ = write!(file, "Found new change in metadata...");
+                    let elapsed = start.elapsed().unwrap().as_secs();
+                    let _ = write!(file, "[{}] Found new change in metadata...", elapsed);
                     hupas = match read_metadata_from_config(&config) {
                         Ok(h) => h,
                         Err(_) => hupas,
@@ -67,19 +69,26 @@ fn main() {
                     if !hupa.is_autobackup_enabled() {
                         continue;
                     }
+                    let elapsed = start.elapsed().unwrap().as_secs();
                     match hupa.backup() {
                         Ok(_) => {
-                            let _ = write!(file, "{} is backed up\n", hupa.get_name());
+                            let _ =
+                                write!(file, "[{}] {} is backed up\n", elapsed, hupa.get_name());
                         }
                         Err(e) => {
                             let _ = write!(file,
-                                           "{} has an error during backup: {}",
+                                           "[{}] {} has an error during backup: {}",
+                                           elapsed,
                                            hupa.get_name(),
                                            e);
                         }
                     }
                 }
-                let _ = write!(file, "Waiting {} secs...\n", config.autobackup_interval);
+                let elapsed = start.elapsed().unwrap().as_secs();
+                let _ = write!(file,
+                               "[{}] Waiting {} secs...\n",
+                               elapsed,
+                               config.autobackup_interval);
                 ::std::thread::sleep(Duration::from_secs(config.autobackup_interval));
             }
         }
