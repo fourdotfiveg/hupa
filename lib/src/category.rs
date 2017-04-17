@@ -1,7 +1,7 @@
 //! Group hupas by category
 
 use hupa::Hupa;
-use std::cmp::PartialEq;
+use std::cmp::{Eq, PartialEq, PartialOrd, Ord, Ordering};
 use std::iter::IntoIterator;
 use std::slice::Iter;
 use std::vec::IntoIter;
@@ -75,6 +75,20 @@ impl Category {
 impl PartialEq<Category> for Category {
     fn eq(&self, rhs: &Category) -> bool {
         self.name == rhs.name
+    }
+}
+
+impl Eq for Category {}
+
+impl PartialOrd for Category {
+    fn partial_cmp(&self, other: &Category) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Category {
+    fn cmp(&self, other: &Category) -> Ordering {
+        self.name.cmp(&other.name)
     }
 }
 
