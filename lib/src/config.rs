@@ -3,32 +3,24 @@
 use APP_INFO;
 use error::*;
 use json::JsonValue;
-use metadata::MetadataFormat;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use std::str::FromStr;
 
 /// Configuration structure to read and write config.
 #[derive(Clone, Debug)]
 pub struct Config {
     /// Path to the metadata
     pub metadata_path: PathBuf,
-    /// Format of the metadata
-    pub metadata_format: MetadataFormat,
     /// Interval between each autobackup
     pub autobackup_interval: u64,
 }
 
 impl Config {
     /// Default constructor
-    pub fn new<P: AsRef<Path>>(metadata_path: P,
-                               metadata_format: MetadataFormat,
-                               autobackup_interval: u64)
-                               -> Config {
+    pub fn new<P: AsRef<Path>>(metadata_path: P, autobackup_interval: u64) -> Config {
         Config {
             metadata_path: metadata_path.as_ref().to_path_buf(),
-            metadata_format: metadata_format,
             autobackup_interval: autobackup_interval,
         }
     }
@@ -48,14 +40,8 @@ impl Config {
             Some(s) => s,
             None => bail!(ErrorKind::MissingMetadataPath),
         };
-        let metadata_format = match json["metadata_format"].as_str() {
-            Some(s) => s,
-            None => bail!(ErrorKind::MissingMetadataFormat),
-        };
         let autobackup_interval = json["autobackup_interval"].as_u64().unwrap_or(3600);
-        Ok(Config::new(metadata_path,
-                       MetadataFormat::from_str(metadata_format)?,
-                       autobackup_interval))
+        Ok(Config::new(metadata_path, autobackup_interval))
     }
 
     /// Read config from user config
@@ -84,10 +70,8 @@ impl Config {
 /// Convert Config into Json
 impl Into<JsonValue> for Config {
     fn into(self) -> JsonValue {
-        let metadata_format: String = self.metadata_format.into();
         object!{
             "metadata_path" => self.metadata_path.display().to_string(),
-            "metadata_format" => metadata_format,
             "autobackup_interval" => self.autobackup_interval
         }
     }
@@ -99,7 +83,7 @@ impl Default for Config {
         let metadata_path = ::app_dirs::app_root(::app_dirs::AppDataType::UserData, &APP_INFO)
             .unwrap()
             .join("metadata.json");
-        Config::new(metadata_path, MetadataFormat::Json, 3600)
+        Config::new(metadata_path, 3600)
     }
 }
 
@@ -110,11 +94,10 @@ mod unit_tests {
 
     #[test]
     fn read_config_from_json() {
-        let json_str = "{\"metadata_path\":\"/\", \"metadata_format\":\"json\", \"autobackup_interval\":260}";
+        let json_str = "{\"metadata_path\":\"/\", \"autobackup_interval\":260}";
         let mut cursor = Cursor::new(json_str);
         let config = Config::from_json_stream(&mut cursor).unwrap();
         assert_eq!(config.metadata_path, Path::new("/"));
-        assert_eq!(config.metadata_format, MetadataFormat::Json);
         assert_eq!(config.autobackup_interval, 260);
     }
 }

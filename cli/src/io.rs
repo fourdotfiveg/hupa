@@ -107,5 +107,5 @@ fn parse_one(s: &str, or: usize) -> usize {
 /// Save hupas
 pub fn save_hupas(config: &Config, hupas: &[Hupa]) {
     let mut f = File::create(&config.metadata_path).expect("Can't create metadata file");
-    libhupa::write_metadata(&mut f, &hupas.to_vec(), &config.metadata_format).expect("Can't write to metadata file");
+    libhupa::write_metadata(&mut f, &hupas.to_vec()).expect("Can't write to metadata file");
 }

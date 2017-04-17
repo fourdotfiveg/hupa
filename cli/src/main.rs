@@ -45,7 +45,6 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 };
 
 fn main() {
-    // TODO add subcommand reorder
     // TODO exclude by categories
     // TODO sort by categories
     let matches = clap_app!(hupa =>
@@ -111,7 +110,7 @@ fn main() {
     };
     if let Some(p) = matches.value_of("metadata") {
         let mut f = ::std::fs::File::open(p).expect(&format!("Can't open {}", p));
-        hupas = read_metadata(&mut f, &None).unwrap_or(hupas);
+        hupas = read_metadata(&mut f).unwrap_or(hupas);
     }
 
 
