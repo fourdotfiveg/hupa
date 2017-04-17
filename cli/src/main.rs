@@ -45,6 +45,9 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 };
 
 fn main() {
+    // TODO add subcommand reorder
+    // TODO exclude by categories
+    // TODO sort by categories
     let matches = clap_app!(hupa =>
         (version: crate_version!())
         (author: "Bastien Badzioch <notkild@gmail.com>")

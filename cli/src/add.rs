@@ -10,9 +10,24 @@ pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches)
         .unwrap_or("1")
         .parse::<usize>()
         .unwrap_or(1);
+    let mut categories = Vec::new();
+    for hupa in &hupas {
+        let mut category = hupa.get_categories()
+            .iter()
+            .map(|s| format!("{}/", s))
+            .collect::<String>();
+        category.pop();
+        categories.push(category);
+    }
+    categories.sort();
+    categories.dedup();
     'main: for _ in 0..count {
         let name = read_line("Name: ");
         let desc = read_line("Description: ");
+        println!("Already used categories:");
+        for category in &categories {
+            println!("- {}", category);
+        }
         let categories = read_line("Categories (ex: os/linux): ");
         let origin = read_line("Origin path: ");
                 #[cfg(unix)]
