@@ -3,6 +3,7 @@
 use hupa::Hupa;
 use std::cmp::{Eq, PartialEq, PartialOrd, Ord, Ordering};
 use std::iter::IntoIterator;
+use std::ops::*;
 use std::slice::Iter;
 use std::vec::IntoIter;
 
@@ -106,6 +107,46 @@ impl IntoIterator for Category {
     }
 }
 
+impl Index<usize> for Category {
+    type Output = Hupa;
+
+    fn index(&self, index: usize) -> &Hupa {
+        &self.hupas[index]
+    }
+}
+
+impl Index<Range<usize>> for Category {
+    type Output = [Hupa];
+
+    fn index(&self, index: Range<usize>) -> &[Hupa] {
+        &self.hupas[index]
+    }
+}
+
+impl Index<RangeTo<usize>> for Category {
+    type Output = [Hupa];
+
+    fn index(&self, index: RangeTo<usize>) -> &[Hupa] {
+        &self.hupas[index]
+    }
+}
+
+impl Index<RangeFrom<usize>> for Category {
+    type Output = [Hupa];
+
+    fn index(&self, index: RangeFrom<usize>) -> &[Hupa] {
+        &self.hupas[index]
+    }
+}
+
+impl Index<RangeFull> for Category {
+    type Output = [Hupa];
+
+    fn index(&self, index: RangeFull) -> &[Hupa] {
+        &self.hupas[index]
+    }
+}
+
 /// Conversion into categories
 pub trait IntoCategories {
     /// Performs the conversion
@@ -152,6 +193,14 @@ mod unit_tests {
                 .collect()
     }
 
+    fn category_of_test() -> Category {
+        let mut category = Category::new("test");
+        for hupa in set_of_hupas() {
+            category.push(hupa);
+        }
+        category
+    }
+
     #[test]
     fn category_push_test() {
         let mut category = Category::new("test");
@@ -159,7 +208,28 @@ mod unit_tests {
             category.push(hupa);
         }
         assert_eq!(category.len(), 3);
-        assert_eq!(category.iter().next(), Some(&set_of_hupas()[2]));
+        assert_eq!(category[0], set_of_hupas()[2]);
+    }
+
+    #[test]
+    fn category_pop_test() {
+        let mut category = category_of_test();
+        let mut hupas: Vec<Hupa> = set_of_hupas()
+            .into_iter()
+            .filter(|h| h.get_category_str() == "test")
+            .collect();
+        for _ in 0..2 {
+            assert_eq!(category.pop(), hupas.pop());
+        }
+    }
+
+    #[test]
+    fn category_index_test() {
+        let valid_hupas = set_of_hupas()[2..].to_vec();
+        let category = category_of_test();
+        for i in 0..2 {
+            assert_eq!(valid_hupas[i], category[i]);
+        }
     }
 
     #[test]
