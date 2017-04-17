@@ -1,11 +1,11 @@
 [package]
 name = "hupad"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["notkild <notkild@gmail.com>"]
 
 [dependencies]
 app_dirs = "1.1"
-clap = "2.21"
+clap = "2.23"
 daemonize = "0.2"
 
 [dependencies.libhupa]
