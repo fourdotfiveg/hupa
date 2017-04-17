@@ -23,7 +23,7 @@ use std::path::{Path, PathBuf};
 ///
 /// `desc` - A small description of what the hupa is.
 ///
-/// `categories` - All the categories of the hupa. e.j: 'os', 'dotfiles', etc...
+/// `category` - Category of the hupa. e.j: 'os', 'dotfiles', etc...
 ///
 /// `backup_parent` - Parent directory of the hupa, where it will be stored
 ///
@@ -34,7 +34,7 @@ use std::path::{Path, PathBuf};
 pub struct Hupa {
     name: String,
     desc: String,
-    categories: Vec<String>,
+    category: Vec<String>,
     backup_parent: PathBuf,
     origin_path: PathBuf,
     autobackup: bool,
@@ -44,7 +44,7 @@ impl Hupa {
     /// Default constructor
     pub fn new<P: AsRef<Path>, Q: AsRef<Path>, S: AsRef<str>>(name: S,
                                                               desc: S,
-                                                              categories: Vec<String>,
+                                                              category: Vec<String>,
                                                               backup_parent: P,
                                                               origin_path: Q,
                                                               autobackup: bool)
@@ -52,7 +52,7 @@ impl Hupa {
         Hupa {
             name: name.as_ref().to_string(),
             desc: desc.as_ref().to_string(),
-            categories: categories,
+            category: category,
             backup_parent: backup_parent.as_ref().to_owned(),
             origin_path: origin_path.as_ref().to_path_buf(),
             autobackup: autobackup,
@@ -69,19 +69,19 @@ impl Hupa {
         &self.desc
     }
 
-    /// Get categories of this hupa
-    pub fn get_categories(&self) -> &Vec<String> {
-        &self.categories
+    /// Get category of this hupa
+    pub fn get_category(&self) -> &Vec<String> {
+        &self.category
     }
 
-    /// Get categories of this hupa in string format
-    pub fn get_categories_str(&self) -> String {
-        let mut categories = self.categories
+    /// Get category of this hupa in string format
+    pub fn get_category_str(&self) -> String {
+        let mut category = self.category
             .iter()
             .map(|s| format!("{}/", s))
             .collect::<String>();
-        categories.pop();
-        categories
+        category.pop();
+        category
     }
 
     /// Get the default backup parent
@@ -120,10 +120,10 @@ impl Hupa {
         self.desc = desc;
     }
 
-    /// Set categories of the hupa
-    pub fn set_categories(&mut self, categories: Vec<String>) -> Result<()> {
+    /// Set category of the hupa
+    pub fn set_category(&mut self, category: Vec<String>) -> Result<()> {
         let old_backup_dir = self.backup_dir();
-        self.categories = categories;
+        self.category = category;
         let new_backup_dir = self.backup_dir();
         if old_backup_dir.exists() {
             move_all(old_backup_dir, new_backup_dir)?;
@@ -155,8 +155,8 @@ impl Hupa {
     /// Return the backup directory of the hupa
     pub fn backup_dir(&self) -> PathBuf {
         let mut hupas = self.backup_parent.clone();
-        for category in &self.categories {
-            hupas = hupas.join(category);
+        for sub_category in &self.category {
+            hupas = hupas.join(sub_category);
         }
         hupas = hupas.join(&self.name);
         hupas

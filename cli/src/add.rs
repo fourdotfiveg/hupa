@@ -10,25 +10,20 @@ pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches)
         .unwrap_or("1")
         .parse::<usize>()
         .unwrap_or(1);
-    let mut categories = Vec::new();
+    let mut category = Vec::new();
     for hupa in &hupas {
-        let mut category = hupa.get_categories()
-            .iter()
-            .map(|s| format!("{}/", s))
-            .collect::<String>();
-        category.pop();
-        categories.push(category);
+        category.push(hupa.get_category_str());
     }
-    categories.sort();
-    categories.dedup();
+    category.sort();
+    category.dedup();
     'main: for _ in 0..count {
         let name = read_line("Name: ");
         let desc = read_line("Description: ");
-        println!("Already used categories:");
-        for category in &categories {
+        println!("Already used category:");
+        for category in &category {
             println!("- {}", category);
         }
-        let categories = read_line("Categories (ex: os/linux): ");
+        let category = read_line("Categories (ex: os/linux): ");
         let origin = read_line("Origin path: ");
                 #[cfg(unix)]
         let origin = origin.replace('~', env!("HOME"));
@@ -36,13 +31,13 @@ pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches)
         let hupa =
             Hupa::new(name.clone(),
                       desc,
-                      categories.split('/').map(|s| s.to_string()).collect(),
+                      category.split('/').map(|s| s.to_string()).collect(),
                       Hupa::get_default_backup_parent().expect("Can't get default backup parent"),
                       origin,
                       autobackup);
         for hupa_stored in &hupas {
             if hupa_stored.get_name() == hupa.get_name() &&
-               hupa_stored.get_categories() == hupa.get_categories() &&
+               hupa_stored.get_category() == hupa.get_category() &&
                hupa_stored.get_backup_parent() == hupa.get_backup_parent() {
                 println!("{}", "This hupa is already set!".red());
                 continue 'main;

@@ -19,7 +19,7 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
         println!("Hupa {}:", hupa.get_name().yellow().bold());
         println!("[1] Set name");
         println!("[2] Set description");
-        println!("[3] Set categories");
+        println!("[3] Set category");
         println!("[4] Set backup parent");
         println!("[5] Set origin path");
         println!("[6] Set autobackup");
@@ -37,14 +37,14 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
                     hupa.set_desc(read_line("New description: "));
                 }
                 3 => {
-                    println!("Current categories: {}",
-                             hupa.get_categories()
+                    println!("Current category: {}",
+                             hupa.get_category()
                                  .iter()
                                  .map(|s| format!("{}/", s))
                                  .collect::<String>());
-                    let categories = read_line("New categories (ex: os/linux): ");
-                    hupa.set_categories(categories.split('/').map(|s| s.to_string()).collect())
-                        .expect("Cannot reset categories");
+                    let category = read_line("New category (ex: os/linux): ");
+                    hupa.set_category(category.split('/').map(|s| s.to_string()).collect())
+                        .expect("Cannot reset category");
                 }
                 4 => {
                     println!("Current backup parent: {}",

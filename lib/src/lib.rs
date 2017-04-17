@@ -11,12 +11,14 @@ extern crate error_chain;
 #[macro_use]
 extern crate json;
 
+mod category;
 mod config;
 mod error;
 mod fs_extra;
 mod hupa;
 mod metadata;
 
+pub use category::*;
 pub use config::*;
 pub use error::*;
 pub use hupa::*;

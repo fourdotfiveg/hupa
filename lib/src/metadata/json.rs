@@ -10,7 +10,7 @@ impl Into<JsonValue> for Hupa {
         object! {
             "name" => self.get_name(),
             "desc" => self.get_desc(),
-            "categories" => self.get_categories().clone(),
+            "category" => self.get_category().clone(),
             "backup_parent" => self.get_backup_parent().display().to_string(),
             "origin" => self.get_origin().display().to_string(),
             "autobackup" => self.is_autobackup_enabled()
@@ -27,15 +27,15 @@ pub fn json_to_hupas(json: &JsonValue) -> Result<Vec<Hupa>> {
     for member in json.members() {
         let name = member["name"].as_str().unwrap();
         let desc = member["desc"].as_str().unwrap();
-        let categories_json = &member["categories"];
-        let mut categories = Vec::new();
-        for category in categories_json.members() {
-            categories.push(category.as_str().unwrap().to_owned());
+        let category_json = &member["category"];
+        let mut category = Vec::new();
+        for sub_category in category_json.members() {
+            category.push(sub_category.as_str().unwrap().to_owned());
         }
         let backup_parent = member["backup_parent"].as_str().unwrap();
         let origin = member["origin"].as_str().unwrap();
         let autobackup = member["autobackup"].as_bool().unwrap();
-        hupas.push(Hupa::new(name, desc, categories, backup_parent, origin, autobackup));
+        hupas.push(Hupa::new(name, desc, category, backup_parent, origin, autobackup));
     }
     Ok(hupas)
 }
@@ -65,14 +65,14 @@ mod unit_tests {
     fn stringify_hupa(hupa: &Hupa) -> String {
         let mut cat_str = String::new();
         cat_str.push('[');
-        cat_str.push_str(hupa.get_categories()
+        cat_str.push_str(hupa.get_category()
                              .iter()
                              .map(|s| format!("\"{}\",", s))
                              .collect::<String>()
                              .as_str());
         cat_str.pop();
         cat_str.push(']');
-        format!("{{\"name\":\"{}\",\"desc\":\"{}\",\"categories\":{},\"backup_parent\":\"/\",\"origin\":\"{}\",\"autobackup\":false}}",
+        format!("{{\"name\":\"{}\",\"desc\":\"{}\",\"category\":{},\"backup_parent\":\"/\",\"origin\":\"{}\",\"autobackup\":false}}",
                 hupa.get_name(),
                 hupa.get_desc(),
                 cat_str,

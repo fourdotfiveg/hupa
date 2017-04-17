@@ -34,7 +34,7 @@ pub fn print_subcommand(hupas: Vec<Hupa>, sub_m: &ArgMatches) {
             format!("autobackup: {}", "disabled".red())
         };
         println!("{}/{}{} {} {}{}:\n{}\ndescription: {}\n",
-                 hupa.get_categories_str().bold(),
+                 hupa.get_category_str().bold(),
                  hupa.get_name().yellow().bold(),
                  size_b,
                  "<->".bold(),
