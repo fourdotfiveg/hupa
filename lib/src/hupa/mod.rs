@@ -12,6 +12,7 @@ pub use self::unix::*;
 use APP_INFO;
 use error::*;
 use fs_extra::{copy_dir, get_size};
+use std::cmp::{Eq, PartialEq, PartialOrd, Ord, Ordering};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -30,7 +31,7 @@ use std::path::{Path, PathBuf};
 /// `origin_path` is the directory of the backed up directory
 ///
 /// `autobackup` - Daemon specific variable, enable autobackup.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Hupa {
     name: String,
     desc: String,
@@ -242,6 +243,30 @@ impl Hupa {
     }
 }
 
+impl PartialEq<Hupa> for Hupa {
+    fn eq(&self, other: &Hupa) -> bool {
+        self.name == other.name && self.category == other.category
+    }
+}
+
+impl Eq for Hupa {}
+
+impl PartialOrd for Hupa {
+    fn partial_cmp(&self, other: &Hupa) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Hupa {
+    fn cmp(&self, other: &Hupa) -> Ordering {
+        match self.get_category_str().cmp(&other.get_category_str()) {
+            Ordering::Less => Ordering::Less,
+            Ordering::Greater => Ordering::Greater,
+            Ordering::Equal => self.name.cmp(&other.name),
+        }
+    }
+}
+
 /// Copy file or directory to path
 ///
 /// `from` - File or directory to copy
@@ -281,4 +306,43 @@ fn remove_all<P: AsRef<Path>>(path: P) -> Result<()> {
         fs::remove_dir_all(&path)?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use super::*;
+
+    fn set_of_hupas() -> Vec<Hupa> {
+        vec![("abc", vec!["test", "hello"]),
+             ("def", vec!["test", "hello"]),
+             ("ghi", vec!["test"]),
+             ("jkl", vec!["test"]),
+             ("mno", vec!["test"])]
+                .into_iter()
+                .map(|(n, v)| {
+                         Hupa::new(n,
+                                   "",
+                                   v.into_iter().map(|s| s.to_string()).collect(),
+                                   "/",
+                                   "/",
+                                   true)
+                     })
+                .collect()
+    }
+
+    #[test]
+    fn hupa_eq_test() {
+        let hupas = set_of_hupas();
+        assert_eq!(hupas[0], hupas[0]);
+        assert_ne!(hupas[1], hupas[2]);
+    }
+
+    #[test]
+    fn hupa_ord_test() {
+        let hupas = set_of_hupas();
+        assert!(hupas[0] < hupas[1]);
+        assert!(hupas[0] > hupas[2]);
+        assert!(hupas[0] > hupas[3]);
+        assert!(hupas[0] > hupas[4]);
+    }
 }

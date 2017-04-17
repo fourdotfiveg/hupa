@@ -72,6 +72,11 @@ impl Category {
         self.hupas.len()
     }
 
+    /// Sort all hupas
+    pub fn sort(&mut self) {
+        self.hupas.sort();
+    }
+
     /// Return an iterator of hupas
     pub fn iter(&self) -> Iter<Hupa> {
         self.hupas.iter()
@@ -79,8 +84,8 @@ impl Category {
 }
 
 impl PartialEq<Category> for Category {
-    fn eq(&self, rhs: &Category) -> bool {
-        self.name == rhs.name
+    fn eq(&self, other: &Category) -> bool {
+        self.name == other.name
     }
 }
 
