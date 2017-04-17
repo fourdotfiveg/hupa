@@ -66,6 +66,11 @@ impl Category {
         self.hupas.pop()
     }
 
+    /// Length of hupas' vec
+    pub fn len(&self) -> usize {
+        self.hupas.len()
+    }
+
     /// Return an iterator of hupas
     pub fn iter(&self) -> Iter<Hupa> {
         self.hupas.iter()
@@ -132,7 +137,9 @@ mod unit_tests {
     fn set_of_hupas() -> Vec<Hupa> {
         vec![("abc", vec!["test", "hello"]),
              ("def", vec!["test", "hello"]),
-             ("ghi", vec!["test"])]
+             ("ghi", vec!["test"]),
+             ("jkl", vec!["test"]),
+             ("mno", vec!["test"])]
                 .into_iter()
                 .map(|(n, v)| {
                          Hupa::new(n,
@@ -143,6 +150,16 @@ mod unit_tests {
                                    true)
                      })
                 .collect()
+    }
+
+    #[test]
+    fn category_push_test() {
+        let mut category = Category::new("test");
+        for hupa in set_of_hupas() {
+            category.push(hupa);
+        }
+        assert_eq!(category.len(), 3);
+        assert_eq!(category.iter().next(), Some(&set_of_hupas()[2]));
     }
 
     #[test]
