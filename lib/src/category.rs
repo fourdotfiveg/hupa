@@ -1,6 +1,10 @@
 //! Group hupas by category
 
 use hupa::Hupa;
+use std::cmp::PartialEq;
+use std::iter::IntoIterator;
+use std::slice::Iter;
+use std::vec::IntoIter;
 
 /// Category is a struct containing hupas of the same category
 #[derive(Clone, Debug)]
@@ -60,5 +64,25 @@ impl Category {
     /// Remove the last hupa of the category
     pub fn pop(&mut self) -> Option<Hupa> {
         self.hupas.pop()
+    }
+
+    /// Return an iterator of hupas
+    pub fn iter(&self) -> Iter<Hupa> {
+        self.hupas.iter()
+    }
+}
+
+impl PartialEq<Category> for Category {
+    fn eq(&self, rhs: &Category) -> bool {
+        self.name == rhs.name
+    }
+}
+
+impl IntoIterator for Category {
+    type Item = Hupa;
+    type IntoIter = IntoIter<Hupa>;
+
+    fn into_iter(self) -> IntoIter<Hupa> {
+        self.hupas.into_iter()
     }
 }
