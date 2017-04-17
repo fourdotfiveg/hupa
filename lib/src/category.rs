@@ -100,3 +100,57 @@ impl IntoIterator for Category {
         self.hupas.into_iter()
     }
 }
+
+/// Conversion into categories
+pub trait IntoCategories {
+    /// Performs the conversion
+    fn into_categories(self) -> Vec<Category>;
+}
+
+impl IntoCategories for Vec<Hupa> {
+    fn into_categories(self) -> Vec<Category> {
+        let mut categories: Vec<Category> = Vec::new();
+        'main: for hupa in self {
+            for category in &mut categories {
+                if &hupa.get_category_str() == category.get_name() {
+                    category.push(hupa);
+                    continue 'main;
+                }
+            }
+            let mut category = Category::new(hupa.get_category_str());
+            category.push(hupa);
+            categories.push(category);
+        }
+        categories
+    }
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use super::*;
+
+    fn set_of_hupas() -> Vec<Hupa> {
+        vec![("abc", vec!["test", "hello"]),
+             ("def", vec!["test", "hello"]),
+             ("ghi", vec!["test"])]
+                .into_iter()
+                .map(|(n, v)| {
+                         Hupa::new(n,
+                                   "",
+                                   v.into_iter().map(|s| s.to_string()).collect(),
+                                   "/",
+                                   "/",
+                                   true)
+                     })
+                .collect()
+    }
+
+    #[test]
+    fn hupas_into_categories() {
+        let hupas = set_of_hupas();
+        let categories = hupas.into_categories();
+        assert_eq!(categories.len(), 2);
+        assert_eq!(categories[0].get_name(), "test/hello");
+        assert_eq!(categories[1].get_name(), "test");
+    }
+}
