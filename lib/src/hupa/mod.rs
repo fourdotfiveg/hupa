@@ -331,6 +331,13 @@ mod unit_tests {
     }
 
     #[test]
+    fn hupa_category_str() {
+        let hupas = set_of_hupas();
+        assert_eq!(hupas[0].get_category_str(), "test/hello");
+        assert_eq!(hupas[2].get_category_str(), "test");
+    }
+
+    #[test]
     fn hupa_eq_test() {
         let hupas = set_of_hupas();
         assert_eq!(hupas[0], hupas[0]);
