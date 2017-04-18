@@ -112,6 +112,15 @@ impl IntoIterator for Category {
     }
 }
 
+impl<'a> IntoIterator for &'a Category {
+    type Item = &'a Hupa;
+    type IntoIter = ::std::slice::Iter<'a, Hupa>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.hupas.iter()
+    }
+}
+
 impl Index<usize> for Category {
     type Output = Hupa;
 
