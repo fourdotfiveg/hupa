@@ -273,12 +273,13 @@ impl Ord for Hupa {
 ///
 /// `to` - Destination path
 fn copy_all<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<()> {
-    let from = from.as_ref();
+    let (from, to) = (from.as_ref(), to.as_ref());
+    fs::create_dir_all(&to.parent().unwrap())?;
     if from.is_file() {
         fs::copy(from, to)?;
     } else if from.is_dir() {
         fs::create_dir_all(&to)?;
-        copy_dir(from, to.as_ref())?;
+        copy_dir(from, to)?;
     }
     Ok(())
 }
@@ -286,7 +287,7 @@ fn copy_all<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<()> {
 /// Move dir to new dir
 fn move_all<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<()> {
     let (from, to) = (from.as_ref(), to.as_ref());
-    copy_dir(&from, to)?;
+    copy_all(&from, to)?;
     if from.is_dir() {
         fs::remove_dir_all(from)?;
     } else if from.is_file() {
