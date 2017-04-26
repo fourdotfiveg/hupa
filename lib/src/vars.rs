@@ -57,6 +57,13 @@ impl VarsHandler {
         Ok(())
     }
 
+    /// Write to string
+    pub fn write_to_string(&self, s: &mut String) {
+        for var in &self.vars {
+            s.push_str(&format!("{}={}\n", var.0, var.1));
+        }
+    }
+
     /// Add var
     pub fn add_var(&mut self, var: Var) {
         self.vars.push(var);
@@ -71,5 +78,51 @@ impl VarsHandler {
             }
         }
         None
+    }
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use super::*;
+    use std::io::Cursor;
+
+    fn set_of_var() -> Vec<Var> {
+        vec![("Hello", true),
+             ("World", true),
+             ("he", false),
+             ("yo", false)]
+                .into_iter()
+                .map(|s| (s.0.to_string(), s.1))
+                .collect()
+    }
+
+    fn vars_string() -> String {
+        let mut buf = String::new();
+        for var in set_of_var() {
+            buf.push_str(&format!("{}={}\n", var.0, var.1));
+        }
+        buf
+    }
+
+    #[test]
+    fn read_from_buf() {
+        let handler = VarsHandler::read_from_buf(vars_string()).unwrap();
+        assert_eq!(handler.vars, set_of_var());
+    }
+
+    #[test]
+    #[should_panic]
+    fn read_from_buf_err() {
+        let s = "hello\nhello=true";
+        let handler = VarsHandler::read_from_buf(s).unwrap();
+        // TODO impl iter
+    }
+
+    #[test]
+    fn write_to_stream() {
+        let handler = VarsHandler::new(set_of_var());
+        let mut buf = Vec::new();
+        handler.write_to_stream(&mut buf).unwrap();
+        assert_eq!(String::from_utf8(buf).unwrap(), vars_string());
     }
 }
