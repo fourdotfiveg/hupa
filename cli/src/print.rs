@@ -40,6 +40,14 @@ fn print_hupa(hupa: &Hupa, size: &str, size_enabled: bool) {
     };
     println!("   -- autobackup is {}", autobackup);
     println!("   -- description: {}", hupa.get_desc());
+    let needed_vars = hupa.get_needed_vars();
+    if needed_vars.len() > 0 {
+        println!("   -- needed vars: {}",
+                 needed_vars
+                     .iter()
+                     .map(|s| format!("{} ", s))
+                     .collect::<String>());
+    }
 }
 
 /// Compute size
