@@ -38,6 +38,7 @@ use humansize::file_size_opts;
 use humansize::file_size_opts::FileSizeOpts;
 use libhupa::*;
 use std::env;
+use std::fs::File;
 
 const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
     space: false,
@@ -104,6 +105,11 @@ fn main() {
             None => Config::read_config(),
         }
         .unwrap_or(config_default);
+    let vars = if let Ok(mut s) = File::open(&config.vars_path) {
+        VarsHandler::read_from_stream(&mut s).unwrap_or(VarsHandler::new(Vec::new()))
+    } else {
+        VarsHandler::new(Vec::new())
+    };
     let mut hupas = match read_metadata_from_config(&config) {
         Ok(h) => h,
         Err(_) => Vec::new(),
@@ -116,7 +122,7 @@ fn main() {
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
-            add_subcommand(hupas, &config, sub_m);
+            add_subcommand(hupas, &config, &vars, sub_m);
         }
         ("remove", Some(sub_m)) => {
             remove_subcommand(hupas, &config, sub_m);
@@ -131,10 +137,10 @@ fn main() {
             print_subcommand(hupas, sub_m);
         }
         ("backup", Some(sub_m)) => {
-            backup_subcommand(&hupas, sub_m);
+            backup_subcommand(&hupas, &vars, sub_m);
         }
         ("restore", Some(sub_m)) => {
-            restore_subcommand(hupas, sub_m);
+            restore_subcommand(hupas, &vars, sub_m);
         }
         ("clean", Some(sub_m)) => {
             clean_subcommand(&hupas, sub_m);

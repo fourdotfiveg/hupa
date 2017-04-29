@@ -6,7 +6,7 @@ use libhupa::*;
 use std::process::Command;
 
 /// Restore subcommand
-pub fn restore_subcommand(hupas: Vec<Hupa>, sub_m: &ArgMatches) {
+pub fn restore_subcommand(hupas: Vec<Hupa>, vars: &VarsHandler, sub_m: &ArgMatches) {
     let hupas = if sub_m.is_present("all") {
         hupas
     } else if let Some(hupas_names) = sub_m.values_of("hupa") {
@@ -16,14 +16,14 @@ pub fn restore_subcommand(hupas: Vec<Hupa>, sub_m: &ArgMatches) {
         select_hupas(&hupas, "Select hupas to restore")
     };
     #[cfg(not(unix))]
-    restore(&hupas);
+    restore(&hupas, vars);
     #[cfg(unix)]
-    restore(&hupas, sub_m.is_present("ignore_root"));
+    restore(&hupas, vars, sub_m.is_present("ignore_root"));
 }
 
 /// Restore hupas with interface
 #[cfg(unix)]
-pub fn restore(hupas: &[Hupa], ignore_root: bool) {
+pub fn restore(hupas: &[Hupa], vars: &VarsHandler, ignore_root: bool) {
     // Needs root check
     for hupa in hupas {
         if hupa.needs_root() && !ignore_root {
@@ -58,7 +58,7 @@ pub fn restore(hupas: &[Hupa], ignore_root: bool) {
             continue;
         }
         exec_hupa(hupa,
-                  |h| h.restore(),
+                  |h| h.restore(vars),
                   &PrintOrder::BackupToOrigin,
                   "Restoring");
     }
@@ -66,10 +66,10 @@ pub fn restore(hupas: &[Hupa], ignore_root: bool) {
 
 /// Restore hupas with interface
 #[cfg(not(unix))]
-pub fn restore(hupas: &[Hupa]) {
+pub fn restore(hupas: &[Hupa], vars: &VarsHandler) {
     for hupa in hupas {
         exec_hupa(hupa,
-                  |h| h.restore(),
+                  |h| h.restore(vars),
                   &PrintOrder::BackupToOrigin,
                   "Restoring");
     }

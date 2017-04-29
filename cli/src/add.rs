@@ -4,7 +4,10 @@ use io::*;
 use libhupa::*;
 
 /// Add subcommand
-pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches) {
+pub fn add_subcommand(mut hupas: Vec<Hupa>,
+                      config: &Config,
+                      vars: &VarsHandler,
+                      sub_m: &ArgMatches) {
     let count = sub_m
         .value_of("count")
         .unwrap_or("1")
@@ -28,13 +31,18 @@ pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches)
                 #[cfg(unix)]
         let origin = origin.replace('~', env!("HOME"));
         let autobackup = read_line_bool("Enable autobackup (y/n)? ", "The answer is yes or no");
+        let needed_vars = read_line("Needed vars: ")
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect();
         let hupa =
             Hupa::new(name.clone(),
                       desc,
                       category.split('/').map(|s| s.to_string()).collect(),
                       Hupa::get_default_backup_parent().expect("Can't get default backup parent"),
                       origin,
-                      autobackup);
+                      autobackup,
+                      needed_vars);
         for hupa_stored in &hupas {
             if hupa_stored.get_name() == hupa.get_name() &&
                hupa_stored.get_category() == hupa.get_category() &&
