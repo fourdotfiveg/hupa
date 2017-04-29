@@ -50,9 +50,9 @@ error_chain! {
             display("variable {} doesn't have value", n)
         }
         /// Error when variables does not fullfill needs of one hupa
-        MissingNeededVar(n: String, v: String) {
+        MissingNeededVar(v: String) {
             description("variable is needed to backup or restore hupa")
-            display("variable {} is needed to backup or restore hupa {}", v, n)
+            display("variable {} is needed to backup or restore hupa", v)
         }
     }
 }

@@ -70,7 +70,7 @@ pub fn exec_hupa<F>(hupa: &Hupa, exec: F, size_order: &PrintOrder, print: &str)
         }
         Err(e) => {
             write!(stdout, "{}", "Error: ".red()).expect("Can't write to stdout");
-            writef!(stdout, "{}", e.description());
+            writef!(stdout, "{}", e);
         }
     }
     writef!(stdout, "\n");

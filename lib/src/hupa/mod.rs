@@ -214,7 +214,7 @@ impl Hupa {
         for var in &self.needed_vars {
             match vars_handler.get_var(var) {
                 Some(true) => {}
-                _ => bail!(ErrorKind::MissingNeededVar(self.name.clone(), var.clone())),
+                _ => bail!(ErrorKind::MissingNeededVar(var.clone())),
             }
         }
         Ok(())
