@@ -76,13 +76,14 @@ mod unit_tests {
              ("dotfiles", vec!["all"], "/dotfiles")]
                 .into_iter()
                 .map(|(n, c, p)| {
-                         Hupa::new(n,
-                                   "",
-                                   c.iter().map(|s| s.to_string()).collect(),
-                                   "/",
-                                   p,
-                                   false)
-                     })
+                    Hupa::new(n,
+                              "",
+                              c.iter().map(|s| s.to_string()).collect(),
+                              "/",
+                              p,
+                              false,
+                              Vec::new())
+                })
                 .collect()
     }
 

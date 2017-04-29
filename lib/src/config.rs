@@ -6,6 +6,7 @@ use json::JsonValue;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use vars::VarsHandler;
 
 /// Configuration structure to read and write config.
 #[derive(Clone, Debug)]
@@ -14,14 +15,20 @@ pub struct Config {
     pub metadata_path: PathBuf,
     /// Interval between each autobackup
     pub autobackup_interval: u64,
+    /// Path to vars
+    pub vars_path: PathBuf,
 }
 
 impl Config {
     /// Default constructor
-    pub fn new<P: AsRef<Path>>(metadata_path: P, autobackup_interval: u64) -> Config {
+    pub fn new<P: AsRef<Path>, Q: AsRef<Path>>(metadata_path: P,
+                                               autobackup_interval: u64,
+                                               vars_path: Q)
+                                               -> Config {
         Config {
             metadata_path: metadata_path.as_ref().to_path_buf(),
             autobackup_interval: autobackup_interval,
+            vars_path: vars_path.as_ref().to_path_buf(),
         }
     }
 
@@ -41,7 +48,11 @@ impl Config {
             None => bail!(ErrorKind::MissingMetadataPath),
         };
         let autobackup_interval = json["autobackup_interval"].as_u64().unwrap_or(3600);
-        Ok(Config::new(metadata_path, autobackup_interval))
+        let vars_path = match json["vars_path"].as_str() {
+            Some(s) => s.to_string(),
+            None => VarsHandler::get_default_path()?.display().to_string(),
+        };
+        Ok(Config::new(metadata_path, autobackup_interval, vars_path))
     }
 
     /// Read config from user config
@@ -72,7 +83,8 @@ impl Into<JsonValue> for Config {
     fn into(self) -> JsonValue {
         object!{
             "metadata_path" => self.metadata_path.display().to_string(),
-            "autobackup_interval" => self.autobackup_interval
+            "autobackup_interval" => self.autobackup_interval,
+            "vars_path" => self.vars_path.display().to_string()
         }
     }
 }
@@ -83,7 +95,8 @@ impl Default for Config {
         let metadata_path = ::app_dirs::app_root(::app_dirs::AppDataType::UserData, &APP_INFO)
             .unwrap()
             .join("metadata.json");
-        Config::new(metadata_path, 3600)
+        let vars_path = VarsHandler::get_default_path().unwrap();
+        Config::new(metadata_path, 3600, vars_path)
     }
 }
 

@@ -1,7 +1,10 @@
 //! Vars handler
 
+use APP_INFO;
+use app_dirs::*;
 use error::*;
 use std::io::{Read, Write};
+use std::path::PathBuf;
 
 /// Var type, first arg is var name and second arg is var's state (enabled or disabled)
 pub type Var = (String, bool);
@@ -15,6 +18,12 @@ impl VarsHandler {
     /// Default constructor
     pub fn new(vars: Vec<Var>) -> VarsHandler {
         VarsHandler { vars: vars }
+    }
+
+    /// Get vars file's path
+    pub fn get_default_path() -> Result<PathBuf> {
+        Ok(app_root(AppDataType::UserConfig, &APP_INFO)?
+               .join("vars"))
     }
 
     /// Read from buffer

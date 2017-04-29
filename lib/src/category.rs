@@ -197,13 +197,14 @@ mod unit_tests {
              ("mno", vec!["test"])]
                 .into_iter()
                 .map(|(n, v)| {
-                         Hupa::new(n,
-                                   "",
-                                   v.into_iter().map(|s| s.to_string()).collect(),
-                                   "/",
-                                   "/",
-                                   true)
-                     })
+                    Hupa::new(n,
+                              "",
+                              v.into_iter().map(|s| s.to_string()).collect(),
+                              "/",
+                              "/",
+                              true,
+                              Vec::new())
+                })
                 .collect()
     }
 
