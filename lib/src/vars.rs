@@ -79,6 +79,39 @@ impl VarsHandler {
         }
         None
     }
+
+    /// Check if var is present
+    pub fn is_present<S: AsRef<str>>(&self, name: S) -> bool {
+        let name = name.as_ref();
+        for var in &self.vars {
+            if var.0 == name {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// Get var value
+    pub fn get_var<S: AsRef<str>>(&self, name: S) -> Option<bool> {
+        let name = name.as_ref();
+        for var in &self.vars {
+            if var.0 == name {
+                return Some(var.1);
+            }
+        }
+        None
+    }
+
+    /// Set var value
+    pub fn set_var<S: AsRef<str>>(&mut self, name: S, value: bool) {
+        let name = name.as_ref();
+        for var in &mut self.vars {
+            if var.0 == name {
+                var.1 = value;
+                return;
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -124,5 +157,29 @@ mod unit_tests {
         let mut buf = Vec::new();
         handler.write_to_stream(&mut buf).unwrap();
         assert_eq!(String::from_utf8(buf).unwrap(), vars_string());
+    }
+
+    #[test]
+    fn is_present_test() {
+        let handler = VarsHandler::new(set_of_var());
+        assert!(handler.is_present("Hello"));
+        assert!(!handler.is_present("hello"));
+    }
+
+    #[test]
+    fn get_var_test() {
+        let handler = VarsHandler::new(set_of_var());
+        assert_eq!(handler.get_var("Hello"), Some(true));
+        assert_eq!(handler.get_var("hello"), None);
+        assert_eq!(handler.get_var("he"), Some(false));
+    }
+
+    #[test]
+    fn set_var_test() {
+        let mut handler = VarsHandler::new(set_of_var());
+        handler.set_var("Hello", false);
+        assert_eq!(handler.get_var("Hello"), Some(false));
+        handler.set_var("Hello", true);
+        assert_eq!(handler.get_var("Hello"), Some(true));
     }
 }
