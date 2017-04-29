@@ -30,6 +30,11 @@ fn main() {
             None => Config::read_config(),
         }
         .unwrap_or(config_default);
+    let vars = if let Ok(mut s) = File::open(&config.vars_path) {
+        VarsHandler::read_from_stream(&mut s).unwrap_or(VarsHandler::new(Vec::new()))
+    } else {
+        VarsHandler::new(Vec::new())
+    };
     if let Some(b) = matches.value_of("interval") {
         if let Ok(i) = b.parse() {
             config.autobackup_interval = i;
@@ -70,7 +75,7 @@ fn main() {
                         continue;
                     }
                     let elapsed = start.elapsed().unwrap().as_secs();
-                    match hupa.backup() {
+                    match hupa.backup(&vars) {
                         Ok(_) => {
                             let _ =
                                 write!(file, "[{}] {} is backed up\n", elapsed, hupa.get_name());
