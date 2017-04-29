@@ -7,13 +7,25 @@ use hupa::Hupa;
 /// Convert hupa to json
 impl Into<JsonValue> for Hupa {
     fn into(self) -> JsonValue {
-        object! {
-            "name" => self.get_name(),
-            "desc" => self.get_desc(),
-            "category" => self.get_category().clone(),
-            "backup_parent" => self.get_backup_parent().display().to_string(),
-            "origin" => self.get_origin().display().to_string(),
-            "autobackup" => self.is_autobackup_enabled()
+        if self.get_needed_vars().len() == 0 {
+            object! {
+                "name" => self.get_name(),
+                "desc" => self.get_desc(),
+                "category" => self.get_category().clone(),
+                "backup_parent" => self.get_backup_parent().display().to_string(),
+                "origin" => self.get_origin().display().to_string(),
+                "autobackup" => self.is_autobackup_enabled()
+            }
+        } else {
+            object! {
+                "name" => self.get_name(),
+                "desc" => self.get_desc(),
+                "category" => self.get_category().clone(),
+                "backup_parent" => self.get_backup_parent().display().to_string(),
+                "origin" => self.get_origin().display().to_string(),
+                "autobackup" => self.is_autobackup_enabled(),
+                "needed_vars" => self.get_needed_vars().clone()
+            }
         }
     }
 }
@@ -35,7 +47,19 @@ pub fn json_to_hupas(json: &JsonValue) -> Result<Vec<Hupa>> {
         let backup_parent = member["backup_parent"].as_str().unwrap();
         let origin = member["origin"].as_str().unwrap();
         let autobackup = member["autobackup"].as_bool().unwrap();
-        hupas.push(Hupa::new(name, desc, category, backup_parent, origin, autobackup));
+        let mut needed_vars = Vec::new();
+        if member["needed_vars"].is_array() {
+            for sub_member in member["needed_vars"].members() {
+                needed_vars.push(sub_member.as_str().unwrap().to_string());
+            }
+        }
+        hupas.push(Hupa::new(name,
+                             desc,
+                             category,
+                             backup_parent,
+                             origin,
+                             autobackup,
+                             needed_vars));
     }
     Ok(hupas)
 }

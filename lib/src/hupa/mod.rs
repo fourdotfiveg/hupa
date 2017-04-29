@@ -15,6 +15,7 @@ use fs_extra::{copy_dir, get_size};
 use std::cmp::{Eq, PartialEq, PartialOrd, Ord, Ordering};
 use std::fs;
 use std::path::{Path, PathBuf};
+use vars::VarsHandler;
 
 /// Hupa is a class to handle a backup
 ///
@@ -31,6 +32,8 @@ use std::path::{Path, PathBuf};
 /// `origin_path` is the directory of the backed up directory
 ///
 /// `autobackup` - Daemon specific variable, enable autobackup.
+///
+/// `needed_vars` - Vars needed to backup or restore this hupa
 #[derive(Clone, Debug)]
 pub struct Hupa {
     name: String,
@@ -39,7 +42,9 @@ pub struct Hupa {
     backup_parent: PathBuf,
     origin_path: PathBuf,
     autobackup: bool,
+    needed_vars: Vec<String>,
 }
+// TODO replace path by string to allow vars
 
 impl Hupa {
     /// Default constructor
@@ -48,7 +53,8 @@ impl Hupa {
                                                               category: Vec<String>,
                                                               backup_parent: P,
                                                               origin_path: Q,
-                                                              autobackup: bool)
+                                                              autobackup: bool,
+                                                              needed_vars: Vec<String>)
                                                               -> Hupa {
         Hupa {
             name: name.as_ref().to_string(),
@@ -57,6 +63,7 @@ impl Hupa {
             backup_parent: backup_parent.as_ref().to_owned(),
             origin_path: origin_path.as_ref().to_path_buf(),
             autobackup: autobackup,
+            needed_vars: needed_vars,
         }
     }
 
@@ -85,6 +92,11 @@ impl Hupa {
         category
     }
 
+    /// Get needed vars
+    pub fn get_needed_vars(&self) -> &Vec<String> {
+        &self.needed_vars
+    }
+
     /// Get the default backup parent
     pub fn get_default_backup_parent() -> Result<PathBuf> {
         ::app_dirs::app_root(::app_dirs::AppDataType::UserData, &APP_INFO).map_err(|e| e.into())
@@ -106,6 +118,8 @@ impl Hupa {
     }
 
     /// Set name of the hupa
+    ///
+    /// May fail when creating and moving new files
     pub fn set_name(&mut self, name: String) -> Result<()> {
         let old_backup_dir = self.backup_dir();
         self.name = name;
@@ -122,6 +136,8 @@ impl Hupa {
     }
 
     /// Set category of the hupa
+    ///
+    /// May fail when creating and moving new files
     pub fn set_category(&mut self, category: Vec<String>) -> Result<()> {
         let old_backup_dir = self.backup_dir();
         self.category = category;
@@ -132,7 +148,14 @@ impl Hupa {
         Ok(())
     }
 
+    /// Set needed vars
+    pub fn set_needed_vars(&mut self, needed_vars: Vec<String>) {
+        self.needed_vars = needed_vars;
+    }
+
     /// Set backup parent of the hupa
+    ///
+    /// May fail when creating and moving new files
     pub fn set_backup_parent<P: AsRef<Path>>(&mut self, backup_parent: P) -> Result<()> {
         let old_backup_dir = self.backup_dir();
         self.backup_parent = backup_parent.as_ref().to_path_buf();
@@ -186,8 +209,20 @@ impl Hupa {
         Ok(origin_time < backup_time)
     }
 
+    /// Check if needed vars are activated
+    fn vars_check(&self, vars_handler: &VarsHandler) -> Result<()> {
+        for var in &self.needed_vars {
+            match vars_handler.get_var(var) {
+                Some(true) => {}
+                _ => bail!(ErrorKind::MissingNeededVar(self.name.clone(), var.clone())),
+            }
+        }
+        Ok(())
+    }
+
     /// Backup hupa
-    pub fn backup(&self) -> Result<()> {
+    pub fn backup(&self, vars_handler: &VarsHandler) -> Result<()> {
+        self.vars_check(vars_handler)?;
         let backup_dir = self.backup_dir();
         if !self.origin_path.exists() {
             bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
@@ -209,7 +244,8 @@ impl Hupa {
     }
 
     /// Restore hupa
-    pub fn restore(&self) -> Result<()> {
+    pub fn restore(&self, vars_handler: &VarsHandler) -> Result<()> {
+        self.vars_check(vars_handler)?;
         let backup_dir = self.backup_dir();
         if !backup_dir.exists() {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
