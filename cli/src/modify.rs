@@ -23,8 +23,9 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
         println!("[4] Set backup parent");
         println!("[5] Set origin path");
         println!("[6] Set autobackup");
-        println!("[7] Cancel");
-        let idxs = read_line_usize("Select action [1-7]: ", "", 7);
+        println!("[7] Set needed vars");
+        println!("[8] Cancel");
+        let idxs = read_line_usize("Select action [1-8]: ", "", 8);
         for i in idxs {
             match i {
                 1 => {
@@ -64,6 +65,18 @@ pub fn modify_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatch
                     };
                     println!("Current autobackup state: {}", print);
                     hupa.set_autobackup(read_line_bool("Enable autobackup? [y/n]: ", ""));
+                }
+                7 => {
+                    println!("Current needed vars: {}",
+                             hupa.get_needed_vars()
+                                 .iter()
+                                 .map(|s| format!("{} ", s))
+                                 .collect::<String>());
+                    let needed_vars = read_line("New needed vars: ")
+                        .split_whitespace()
+                        .map(|s| s.to_string())
+                        .collect();
+                    hupa.set_needed_vars(needed_vars);
                 }
                 _ => {}
             }

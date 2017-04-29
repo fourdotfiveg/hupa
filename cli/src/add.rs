@@ -4,10 +4,7 @@ use io::*;
 use libhupa::*;
 
 /// Add subcommand
-pub fn add_subcommand(mut hupas: Vec<Hupa>,
-                      config: &Config,
-                      vars: &VarsHandler,
-                      sub_m: &ArgMatches) {
+pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches) {
     let count = sub_m
         .value_of("count")
         .unwrap_or("1")

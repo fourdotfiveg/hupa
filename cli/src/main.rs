@@ -122,7 +122,7 @@ fn main() {
 
     match matches.subcommand() {
         ("add", Some(sub_m)) => {
-            add_subcommand(hupas, &config, &vars, sub_m);
+            add_subcommand(hupas, &config, sub_m);
         }
         ("remove", Some(sub_m)) => {
             remove_subcommand(hupas, &config, sub_m);
