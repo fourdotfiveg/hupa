@@ -22,6 +22,7 @@ mod print;
 mod backup;
 mod restore;
 mod clean;
+mod vars;
 
 use add::*;
 use remove::*;
@@ -31,6 +32,7 @@ use print::*;
 use backup::*;
 use restore::*;
 use clean::*;
+use vars::*;
 
 use clap::AppSettings;
 use clap::ArgMatches;
@@ -90,7 +92,15 @@ fn main() {
         (@subcommand clean =>
             (about: "Clean hupa(s)")
             (@arg all: -a --all "Clean all hupas")
-            (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))).get_matches();
+            (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))
+        (@subcommand vars => 
+            (about: "Manipulate vars")
+            (setting: AppSettings::SubcommandRequiredElseHelp)
+            (@subcommand add => (about: "Add var(s)"))
+            (@subcommand remove => (about: "Remove var(s)"))
+            (@subcommand modify => (about: "Modify var(s)"))
+            (@subcommand list => (about: "List var(s)")))
+        ).get_matches();
 
     if let Some(u) = get_arg_recursive(&matches, "user") {
         #[cfg(target_os = "macos")]
@@ -144,6 +154,9 @@ fn main() {
         }
         ("clean", Some(sub_m)) => {
             clean_subcommand(&hupas, sub_m);
+        }
+        ("vars", Some(sub_m)) => {
+            vars_subcommand(vars, &config, sub_m);
         }
         (s, _) => println!("`{}` is not supported yet", s),
     }

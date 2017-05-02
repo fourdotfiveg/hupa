@@ -36,9 +36,9 @@ pub fn read_line_bool(print: &str, err_msg: &str) -> bool {
     loop {
         let readed = read_line(print);
         let readed = readed.to_lowercase();
-        if readed == "yes" || readed == "y" {
+        if readed == "yes" || readed == "y" || readed == "true" || readed == "1" {
             return true;
-        } else if readed == "no" || readed == "n" {
+        } else if readed == "no" || readed == "n" || readed == "false" || readed == "0" {
             return false;
         } else {
             println!("{}", err_msg.red());
