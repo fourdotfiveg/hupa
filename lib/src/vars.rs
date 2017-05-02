@@ -4,7 +4,9 @@ use APP_INFO;
 use app_dirs::*;
 use error::*;
 use std::io::{Read, Write};
+use std::ops::*;
 use std::path::PathBuf;
+use std::vec::IntoIter;
 
 /// Var type, first arg is var name and second arg is var's state (enabled or disabled)
 pub type Var = (String, bool);
@@ -122,6 +124,65 @@ impl VarsHandler {
         }
     }
 }
+
+impl IntoIterator for VarsHandler {
+    type Item = Var;
+    type IntoIter = IntoIter<Var>;
+
+    fn into_iter(self) -> IntoIter<Var> {
+        self.vars.into_iter()
+    }
+}
+
+impl<'a> IntoIterator for &'a VarsHandler {
+    type Item = &'a Var;
+    type IntoIter = ::std::slice::Iter<'a, Var>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.vars.iter()
+    }
+}
+
+impl Index<usize> for VarsHandler {
+    type Output = Var;
+
+    fn index(&self, index: usize) -> &Var {
+        &self.vars[index]
+    }
+}
+
+impl Index<Range<usize>> for VarsHandler {
+    type Output = [Var];
+
+    fn index(&self, index: Range<usize>) -> &[Var] {
+        &self.vars[index]
+    }
+}
+
+impl Index<RangeTo<usize>> for VarsHandler {
+    type Output = [Var];
+
+    fn index(&self, index: RangeTo<usize>) -> &[Var] {
+        &self.vars[index]
+    }
+}
+
+impl Index<RangeFrom<usize>> for VarsHandler {
+    type Output = [Var];
+
+    fn index(&self, index: RangeFrom<usize>) -> &[Var] {
+        &self.vars[index]
+    }
+}
+
+impl Index<RangeFull> for VarsHandler {
+    type Output = [Var];
+
+    fn index(&self, index: RangeFull) -> &[Var] {
+        &self.vars[index]
+    }
+}
+
 
 #[cfg(test)]
 mod unit_tests {
