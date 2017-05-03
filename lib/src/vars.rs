@@ -156,6 +156,12 @@ impl Index<usize> for VarsHandler {
     }
 }
 
+impl IndexMut<usize> for VarsHandler {
+    fn index_mut(&mut self, index: usize) -> &mut Var {
+        &mut self.vars[index]
+    }
+}
+
 impl Index<Range<usize>> for VarsHandler {
     type Output = [Var];
 
