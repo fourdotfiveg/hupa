@@ -12,7 +12,7 @@ pub fn vars_subcommand(mut vars: VarsHandler, config: &Config, sub_m: &ArgMatche
         ("remove", _) => vars_remove_subcommand(&mut vars),
         ("modify", _) => {}
         ("list", _) => {
-
+            vars_list_subcommand(&vars);
             can_write = false;
         }
         (c, _) => println!("Command {} is not supported", c),
@@ -50,5 +50,12 @@ pub fn vars_remove_subcommand(vars: &mut VarsHandler) {
     for name in vars_to_remove {
         println!("Var {} removed", name);
         vars.remove_var(name);
+    }
+}
+
+/// Vars list subcommand
+pub fn vars_list_subcommand(vars: &VarsHandler) {
+    for var in vars {
+        println!("{} = {}", var.0, var.1);
     }
 }
