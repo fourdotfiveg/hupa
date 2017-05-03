@@ -91,6 +91,11 @@ impl VarsHandler {
         None
     }
 
+    /// Get numbers of var
+    pub fn len(&self) -> usize {
+        self.vars.len()
+    }
+
     /// Check if var is present
     pub fn is_present<S: AsRef<str>>(&self, name: S) -> bool {
         let name = name.as_ref();
