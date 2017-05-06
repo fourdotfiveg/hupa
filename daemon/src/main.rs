@@ -5,6 +5,7 @@ extern crate app_dirs;
 extern crate clap;
 extern crate daemonize;
 extern crate libhupa;
+extern crate time;
 
 use daemonize::Daemonize;
 use libhupa::*;
@@ -49,8 +50,6 @@ fn main() {
         Err(_) => Vec::new(),
     };
 
-    let start = SystemTime::now();
-
     let daemonize = Daemonize::new();
     let path = app_dirs::app_root(app_dirs::AppDataType::UserCache, &APP_INFO)
         .unwrap()
@@ -66,8 +65,7 @@ fn main() {
 
                 // Check change metadata
                 if last_change_met != change_met {
-                    let elapsed = start.elapsed().unwrap().as_secs();
-                    let _ = write!(file, "[{}] Found new change in metadata...", elapsed);
+                    let _ = write!(file, "[{}] Found new change in metadata...", get_time_str());
                     hupas = match read_metadata_from_config(&config) {
                         Ok(h) => h,
                         Err(_) => hupas,
@@ -77,8 +75,7 @@ fn main() {
 
                 // Check change vars
                 if last_change_vars != change_vars {
-                    let elapsed = start.elapsed().unwrap().as_secs();
-                    let _ = write!(file, "[{}] Found new change in vars...", elapsed);
+                    let _ = write!(file, "[{}] Found new change in vars...", get_time_str());
                     vars = if let Ok(mut s) = File::open(&config.vars_path) {
                         VarsHandler::read_from_stream(&mut s)
                             .unwrap_or(VarsHandler::new(Vec::new()))
@@ -91,25 +88,25 @@ fn main() {
                     if !hupa.is_autobackup_enabled() {
                         continue;
                     }
-                    let elapsed = start.elapsed().unwrap().as_secs();
                     match hupa.backup(&vars) {
                         Ok(_) => {
-                            let _ =
-                                write!(file, "[{}] {} is backed up\n", elapsed, hupa.get_name());
+                            let _ = write!(file,
+                                           "[{}] {} is backed up\n",
+                                           get_time_str(),
+                                           hupa.get_name());
                         }
                         Err(e) => {
                             let _ = write!(file,
                                            "[{}] {} has an error during backup: {}",
-                                           elapsed,
+                                           get_time_str(),
                                            hupa.get_name(),
                                            e);
                         }
                     }
                 }
-                let elapsed = start.elapsed().unwrap().as_secs();
                 let _ = write!(file,
                                "[{}] Waiting {} secs...\n",
-                               elapsed,
+                               get_time_str(),
                                config.autobackup_interval);
                 ::std::thread::sleep(Duration::from_secs(config.autobackup_interval));
             }
@@ -125,4 +122,15 @@ fn get_last_change<P: AsRef<Path>>(path: P) -> SystemTime {
     metadata
         .modified()
         .expect("Can't get last time modified")
+}
+
+fn get_time_str() -> String {
+    let time = time::now();
+    format!("{:02}/{:02}/{}-{:02}:{:02}:{:02}",
+            time.tm_mon + 1,
+            time.tm_mday,
+            time.tm_year + 1900,
+            time.tm_hour,
+            time.tm_min,
+            time.tm_sec)
 }
