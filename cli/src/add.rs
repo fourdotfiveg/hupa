@@ -17,18 +17,18 @@ pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches)
     category.sort();
     category.dedup();
     'main: for _ in 0..count {
-        let name = read_line("Name: ");
-        let desc = read_line("Description: ");
+        let name = read_line("Name: ", true);
+        let desc = read_line("Description: ", false);
         println!("Already used category:");
         for category in &category {
             println!("- {}", category);
         }
-        let category = read_line("Categories (ex: os/linux): ");
-        let origin = read_line("Origin path: ");
+        let category = read_line("Categories (ex: os/linux): ", true);
+        let origin = read_line("Origin path: ", true);
                 #[cfg(unix)]
         let origin = origin.replace('~', env!("HOME"));
-        let autobackup = read_line_bool("Enable autobackup (y/n)? ", "The answer is yes or no");
-        let needed_vars = read_line("Needed vars: ")
+        let autobackup = read_line_bool("Enable autobackup (y/n)? ");
+        let needed_vars = read_line("Needed vars: ", false)
             .split_whitespace()
             .map(|s| s.to_string())
             .collect();

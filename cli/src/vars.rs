@@ -26,8 +26,8 @@ pub fn vars_subcommand(mut vars: VarsHandler, config: &Config, sub_m: &ArgMatche
 
 /// Vars add subcommand
 pub fn vars_add_subcommand(vars: &mut VarsHandler) {
-    let name = ::io::read_line("Var name: ");
-    let value = ::io::read_line_bool("Value (true/false): ", "");
+    let name = ::io::read_line("Var name: ", true);
+    let value = ::io::read_line_bool("Value (true/false): ");
     vars.add_var((name, value));
 }
 
@@ -59,7 +59,7 @@ pub fn vars_modify_subcommand(vars: &mut VarsHandler) {
     for i in idxs {
         let var = &mut vars[i - 1];
         println!("{} = {}", var.0, var.1);
-        let new_val = ::io::read_line_bool("New value: ", "");
+        let new_val = ::io::read_line_bool("New value: ");
         var.1 = new_val;
     }
 }
@@ -77,5 +77,5 @@ fn select_vars(vars: &VarsHandler) -> Vec<usize> {
         println!("[{}] {}", i + 1, vars[i].0);
     }
     println!("[{}] Cancel", vars.len() + 1);
-    ::io::read_line_usize("Var(s) to remove: ", "", vars.len())
+    ::io::read_line_usize("Var(s) to remove: ", false, vars.len())
 }

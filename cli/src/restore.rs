@@ -28,7 +28,7 @@ pub fn restore(hupas: &[Hupa], vars: &VarsHandler, ignore_root: bool) {
     for hupa in hupas {
         if hupa.needs_root() && !ignore_root {
             println!("Looks like some hupas needs root to be restored.");
-            let result = read_line_bool("Ignore them? [y/n]: ", "");
+            let result = read_line_bool("Ignore them? [y/n]: ");
             if result {
                 break;
             } else {

@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Write;
 
 /// Read line
-pub fn read_line(print: &str) -> String {
+pub fn read_line(print: &str, need_input: bool) -> String {
     let stdin = ::std::io::stdin();
     let mut stdout = ::std::io::stdout();
     let mut buf = String::new();
@@ -14,51 +14,54 @@ pub fn read_line(print: &str) -> String {
         stdin
             .read_line(&mut buf)
             .expect("Error while reading stdin");
-        buf = buf.trim().to_string()
+        buf = buf.trim().to_string();
+        if !need_input {
+            return buf;
+        }
     }
     buf
 }
 
 /// Read line and parse
-pub fn read_line_parse<T: ::std::str::FromStr>(print: &str, err_msg: &str) -> T {
+pub fn read_line_parse<T: ::std::str::FromStr>(print: &str) -> T {
     loop {
-        let readed = read_line(print);
+        let readed = read_line(print, true);
         if let Ok(r) = readed.parse::<T>() {
             return r;
         } else {
-            println!("{}", err_msg.red());
+            println!("{}", "Invalid input".red());
         }
     }
 }
 
 /// Read line bool
-pub fn read_line_bool(print: &str, err_msg: &str) -> bool {
+pub fn read_line_bool(print: &str) -> bool {
     loop {
-        let readed = read_line(print);
+        let readed = read_line(print, true);
         let readed = readed.to_lowercase();
         if readed == "yes" || readed == "y" || readed == "true" || readed == "1" {
             return true;
         } else if readed == "no" || readed == "n" || readed == "false" || readed == "0" {
             return false;
         } else {
-            println!("{}", err_msg.red());
+            println!("{}", "Invalid boolean".red());
         }
     }
 }
 
 /// Read line numbers
-pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
+pub fn read_line_usize(print: &str, need_input: bool, max: usize) -> Vec<usize> {
     let mut result = Vec::new();
     let mut valid = false;
     while !valid {
-        let readed = read_line(print);
+        let readed = read_line(print, need_input);
         result = Vec::new();
         valid = true;
         for s in readed.split_whitespace() {
             if s.contains("..") {
                 let (mut first, mut second) = parse_range(s, max);
                 if first < 1 || first > max || second < 1 || second > max {
-                    println!("{}", err_msg.red());
+                    println!("{}", "Out of range".red());
                     valid = false;
                     break;
                 }
@@ -74,7 +77,7 @@ pub fn read_line_usize(print: &str, err_msg: &str, max: usize) -> Vec<usize> {
             } else {
                 let num = s.parse().unwrap_or(0);
                 if num < 1 || num > max {
-                    println!("{}", err_msg.red());
+                    println!("{}", "Out of range".red());
                     valid = false;
                     break;
                 }

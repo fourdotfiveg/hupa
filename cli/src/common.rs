@@ -88,8 +88,7 @@ pub fn select_hupas(hupas: &[Hupa], print: &str) -> Vec<Hupa> {
         selected = Vec::new();
         valid = true;
         let idxs = read_line_usize(&format!("{} [1-{}]: ", print, hupas.len() + 1),
-                                   &format!("You should enter a number between 1 and {}",
-                                            hupas.len() + 1),
+                                   false,
                                    hupas.len() + 1);
         for idx in idxs {
             if idx == 0 || idx > hupas.len() + 1 {
