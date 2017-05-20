@@ -206,7 +206,7 @@ impl Hupa {
         let origin_time = origin_metadata.modified()?;
         let backup_metadata = backup.metadata()?;
         let backup_time = backup_metadata.modified()?;
-        Ok(origin_time < backup_time)
+        Ok(origin_time > backup_time)
     }
 
     /// Check if needed vars are activated
