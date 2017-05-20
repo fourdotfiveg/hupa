@@ -11,7 +11,8 @@ pub fn resolve_names(hupas_names: &[String], hupas: &[Hupa]) -> Vec<Hupa> {
     for hupa_name in hupas_names {
         let mut found = false;
         for hupa in hupas {
-            if hupa.get_name() == hupa_name {
+            if hupa.get_name() == hupa_name ||
+               &format!("{}/{}", hupa.get_category_str(), hupa.get_name()) == hupa_name {
                 resolved.push(hupa.clone());
                 found = true;
                 break;

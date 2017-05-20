@@ -32,13 +32,16 @@ pub fn restore(hupas: &[Hupa], vars: &VarsHandler, ignore_root: bool) {
             if result {
                 break;
             } else {
-                let mut args = ::std::env::args().collect::<Vec<String>>();
-                if !args.contains(&"--config".to_string()) {
-                    args.push("--config".to_string());
-                    args.push(Config::config_path()
-                                  .expect("Can't get config path")
-                                  .display()
-                                  .to_string());
+                let mut args = Vec::new();
+                args.push(::std::env::args().next().unwrap_or("hupa".to_string()));
+                args.push("restore".to_string());
+                args.push("--config".to_string());
+                args.push(Config::config_path()
+                              .expect("Can't get config path")
+                              .display()
+                              .to_string());
+                for hupa in hupas {
+                    args.push(format!("{}/{}", hupa.get_category_str(), hupa.get_name()));
                 }
                 let mut command = Command::new("sudo");
                 let ref_command = command.args(args);
