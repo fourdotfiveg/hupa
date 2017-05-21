@@ -58,7 +58,7 @@ pub fn read_line_usize(print: &str, need_input: bool, max: usize) -> Vec<usize> 
         result = Vec::new();
         valid = true;
         for s in readed.split_whitespace() {
-            if s.contains("..") {
+            if s.contains("..") | s.contains("-") {
                 let (mut first, mut second) = parse_range(s, max);
                 if first < 1 || first > max || second < 1 || second > max {
                     println!("{}", "Out of range".red());
@@ -90,7 +90,11 @@ pub fn read_line_usize(print: &str, need_input: bool, max: usize) -> Vec<usize> 
 
 /// Parse range
 fn parse_range(s: &str, max: usize) -> (usize, usize) {
-    let mut splitted = s.split("..");
+    let mut splitted = if s.contains("..") {
+        s.split("..")
+    } else {
+        s.split("-")
+    };
     let first = splitted.next().unwrap_or("1");
     let max_str = max.to_string();
     let second = splitted.next().unwrap_or(&max_str);
