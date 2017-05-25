@@ -52,7 +52,7 @@ fn main() {
     // TODO sort by category
     let matches = clap_app!(hupa =>
         (version: crate_version!())
-        (author: "Bastien Badzioch <notkild@gmail.com>")
+        (author: "Bastien Badzioch <fourdotfiveg@gmail.com>")
         (about: "Hupa is a tool to backup and restore data")
         (setting: AppSettings::SubcommandRequiredElseHelp)
         (@arg config: -c --config +global +takes_value "Set config path")

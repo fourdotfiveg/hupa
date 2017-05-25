@@ -18,7 +18,7 @@ use std::time::SystemTime;
 fn main() {
     let matches = clap_app!(hupad =>
             (version: crate_version!())
-            (author: "Bastien Badzioch <notkild@gmail.com>")
+            (author: "Bastien Badzioch <fourdotfiveg@gmail.com>")
             (about: "Hupa daemon is used as a server or as a backup daemon")
             (@arg config: -c --config +takes_value "Set config path")
             (@arg metadata: -m --metadata +takes_value "Set metadata path")
