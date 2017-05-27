@@ -97,7 +97,7 @@ fn main() {
                         }
                         Err(e) => {
                             let _ = write!(file,
-                                           "[{}] {} has an error during backup: {}",
+                                           "[{}] {} has an error during backup: {}\n",
                                            get_time_str(),
                                            hupa.get_name(),
                                            e);
@@ -111,17 +111,13 @@ fn main() {
                 ::std::thread::sleep(Duration::from_secs(config.autobackup_interval));
             }
         }
-        Err(e) => write!(file, "Error: {}", e).expect("Can't write to file"),
+        Err(e) => write!(file, "Error: {}\n", e).expect("Can't write to file"),
     }
 }
 
 fn get_last_change<P: AsRef<Path>>(path: P) -> SystemTime {
-    let metadata = path.as_ref()
-        .metadata()
-        .expect("Can't get metadata info");
-    metadata
-        .modified()
-        .expect("Can't get last time modified")
+    let metadata = path.as_ref().metadata().expect("Can't get metadata info");
+    metadata.modified().expect("Can't get last time modified")
 }
 
 fn get_time_str() -> String {
