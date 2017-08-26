@@ -87,5 +87,9 @@ fn can_write(mode: u32) -> (bool, bool, bool) {
     let owner_mode = (mode & 0o700) >> 6;
     let group_mode = (mode & 0o070) >> 3;
     let other_mode = mode & 0o007;
-    (owner_mode & 2 == 2, group_mode & 2 == 2, other_mode & 2 == 2)
+    (
+        owner_mode & 2 == 2,
+        group_mode & 2 == 2,
+        other_mode & 2 == 2,
+    )
 }

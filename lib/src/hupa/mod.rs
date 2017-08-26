@@ -11,7 +11,7 @@ pub use self::unix::*;
 
 use APP_INFO;
 use error::*;
-use fs_extra::{copy_dir, get_size};
+use fs_extra::{check_older, copy_dir, get_size};
 use std::cmp::{Eq, PartialEq, PartialOrd, Ord, Ordering};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -48,14 +48,15 @@ pub struct Hupa {
 
 impl Hupa {
     /// Default constructor
-    pub fn new<P: AsRef<Path>, Q: AsRef<Path>, S: AsRef<str>>(name: S,
-                                                              desc: S,
-                                                              category: Vec<String>,
-                                                              backup_parent: P,
-                                                              origin_path: Q,
-                                                              autobackup: bool,
-                                                              needed_vars: Vec<String>)
-                                                              -> Hupa {
+    pub fn new<P: AsRef<Path>, Q: AsRef<Path>, S: AsRef<str>>(
+        name: S,
+        desc: S,
+        category: Vec<String>,
+        backup_parent: P,
+        origin_path: Q,
+        autobackup: bool,
+        needed_vars: Vec<String>,
+    ) -> Hupa {
         Hupa {
             name: name.as_ref().to_string(),
             desc: desc.as_ref().to_string(),
@@ -202,11 +203,7 @@ impl Hupa {
         if get_size(&backup)? != get_size(&self.origin_path)? {
             return Ok(true);
         }
-        let origin_metadata = self.origin_path.metadata()?;
-        let origin_time = origin_metadata.modified()?;
-        let backup_metadata = backup.metadata()?;
-        let backup_time = backup_metadata.modified()?;
-        Ok(origin_time > backup_time)
+        check_older(&self.origin_path, &backup)
     }
 
     /// Check if needed vars are activated
@@ -225,15 +222,14 @@ impl Hupa {
         self.vars_check(vars_handler)?;
         let backup_dir = self.backup_dir();
         if !self.origin_path.exists() {
-            bail!(ErrorKind::MissingOrigin(self.origin_path.display().to_string()));
+            bail!(ErrorKind::MissingOrigin(
+                self.origin_path.display().to_string(),
+            ));
         }
-        if let Ok(b) = self.has_origin_changed() {
-            if b {
-                return Ok(());
-            }
+        if let Ok(false) = self.has_origin_changed() {
+            return Ok(());
         }
-        #[cfg(unix)]
-        self.set_eid_backup()?;
+        #[cfg(unix)] self.set_eid_backup()?;
         // TODO add file sync
         self.delete_backup()?;
         if let Some(p) = backup_dir.parent() {
@@ -250,8 +246,7 @@ impl Hupa {
         if !backup_dir.exists() {
             bail!(ErrorKind::MissingBackup(backup_dir.display().to_string()));
         }
-        #[cfg(unix)]
-        self.set_eid_restore()?;
+        #[cfg(unix)] self.set_eid_restore()?;
         // TODO add file sync
         self.delete_origin()?;
         if let Some(p) = self.origin_path.parent() {
@@ -350,22 +345,25 @@ mod unit_tests {
     use super::*;
 
     fn set_of_hupas() -> Vec<Hupa> {
-        vec![("abc", vec!["test", "hello"]),
-             ("def", vec!["test", "hello"]),
-             ("ghi", vec!["test"]),
-             ("jkl", vec!["test"]),
-             ("mno", vec!["test"])]
-                .into_iter()
-                .map(|(n, v)| {
-                    Hupa::new(n,
-                              "",
-                              v.into_iter().map(|s| s.to_string()).collect(),
-                              "/",
-                              "/",
-                              true,
-                              Vec::new())
-                })
-                .collect()
+        vec![
+            ("abc", vec!["test", "hello"]),
+            ("def", vec!["test", "hello"]),
+            ("ghi", vec!["test"]),
+            ("jkl", vec!["test"]),
+            ("mno", vec!["test"]),
+        ].into_iter()
+            .map(|(n, v)| {
+                Hupa::new(
+                    n,
+                    "",
+                    v.into_iter().map(|s| s.to_string()).collect(),
+                    "/",
+                    "/",
+                    true,
+                    Vec::new(),
+                )
+            })
+            .collect()
     }
 
     #[test]

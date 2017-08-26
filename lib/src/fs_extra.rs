@@ -53,3 +53,33 @@ pub fn get_size<P: AsRef<Path>>(path: P) -> Result<u64> {
     }
     Ok(result)
 }
+
+/// Check if directory is older than source
+pub fn check_older<P: AsRef<Path>, Q: AsRef<Path>>(src: P, dir: Q) -> Result<bool> {
+    let (src, dir) = (src.as_ref(), dir.as_ref());
+    if !src.exists() || !dir.exists() {
+        return Ok(true);
+    }
+    if src.metadata()?.modified()? > dir.metadata()?.modified()? {
+        return Ok(true);
+    }
+    for entry in src.read_dir()? {
+        let entry = entry?.path();
+        let dir_entry = dir.join(entry.file_name().unwrap());
+        if !dir_entry.exists() {
+            return Ok(true);
+        }
+        if entry.is_dir() {
+            if let Ok(true) = check_older(entry, dir_entry) {
+                return Ok(true);
+            }
+        } else {
+            let entry_met = entry.metadata()?;
+            let dir_entry_met = dir_entry.metadata()?;
+            if entry_met.modified()? > dir_entry_met.modified()? {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
