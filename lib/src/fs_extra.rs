@@ -14,7 +14,7 @@ pub fn copy_dir<P: AsRef<Path>, Q: AsRef<Path>>(from: P, to: Q) -> Result<u64> {
     }
 
     if !to.exists() {
-        fs::create_dir(&to)?;
+        fs::create_dir_all(&to)?;
     }
 
     let mut to = to.to_path_buf();
