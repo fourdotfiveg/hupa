@@ -1,6 +1,7 @@
 //! Hupa is a tool to backup and restore some settings or file of your system
 
 #![deny(missing_docs)]
+#![allow(unused_doc_comment)]
 #![recursion_limit="128"]
 
 #[cfg(unix)]

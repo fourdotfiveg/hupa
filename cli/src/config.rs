@@ -18,8 +18,10 @@ pub fn config_subcommand(mut config: Config) {
                 config.metadata_path = path.to_path_buf();
             }
             2 => {
-                println!("Current autobackup interval: {}",
-                         config.autobackup_interval);
+                println!(
+                    "Current autobackup interval: {}",
+                    config.autobackup_interval
+                );
                 config.autobackup_interval = read_line_parse("Autobackup interval in seconds: ");
             }
             3 => {

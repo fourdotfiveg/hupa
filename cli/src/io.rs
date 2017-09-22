@@ -11,9 +11,9 @@ pub fn read_line(print: &str, need_input: bool) -> String {
     let mut buf = String::new();
     while buf.is_empty() {
         writef!(stdout, "{}", print);
-        stdin
-            .read_line(&mut buf)
-            .expect("Error while reading stdin");
+        stdin.read_line(&mut buf).expect(
+            "Error while reading stdin",
+        );
         buf = buf.trim().to_string();
         if !need_input {
             return buf;

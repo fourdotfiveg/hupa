@@ -17,10 +17,12 @@ pub fn print_subcommand(hupas: Vec<Hupa>, sub_m: &ArgMatches) {
 /// Print category
 fn print_category(category: &Category, size_enabled: bool) {
     let (sizes, total_str) = compute_size(category, size_enabled);
-    println!("{}: {} item(s){}",
-             category.get_name().bold(),
-             category.len(),
-             total_str);
+    println!(
+        "{}: {} item(s){}",
+        category.get_name().bold(),
+        category.len(),
+        total_str
+    );
     for (i, hupa) in category.iter().enumerate() {
         print_hupa(hupa, &sizes[i], size_enabled);
     }
@@ -42,11 +44,13 @@ fn print_hupa(hupa: &Hupa, size: &str, size_enabled: bool) {
     println!("   -- description: {}", hupa.get_desc());
     let needed_vars = hupa.get_needed_vars();
     if needed_vars.len() > 0 {
-        println!("   -- needed vars: {}",
-                 needed_vars
-                     .iter()
-                     .map(|s| format!("{} ", s))
-                     .collect::<String>());
+        println!(
+            "   -- needed vars: {}",
+            needed_vars
+                .iter()
+                .map(|s| format!("{} ", s))
+                .collect::<String>()
+        );
     }
 }
 

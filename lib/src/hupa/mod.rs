@@ -46,6 +46,15 @@ pub struct Hupa {
 }
 // TODO replace path by string to allow vars
 
+/// Describe operation result
+#[derive(PartialEq)]
+pub enum OperationResult {
+    /// A modification has occured
+    Change,
+    /// No change, folder/files is/are up to date
+    NoChange,
+}
+
 impl Hupa {
     /// Default constructor
     pub fn new<P: AsRef<Path>, Q: AsRef<Path>, S: AsRef<str>>(
@@ -218,7 +227,7 @@ impl Hupa {
     }
 
     /// Backup hupa
-    pub fn backup(&self, vars_handler: &VarsHandler) -> Result<()> {
+    pub fn backup(&self, vars_handler: &VarsHandler) -> Result<OperationResult> {
         self.vars_check(vars_handler)?;
         let backup_dir = self.backup_dir();
         if !self.origin_path.exists() {
@@ -227,7 +236,7 @@ impl Hupa {
             ));
         }
         if let Ok(false) = self.has_origin_changed() {
-            return Ok(());
+            return Ok(OperationResult::NoChange);
         }
         #[cfg(unix)] self.set_eid_backup()?;
         // TODO add file sync
@@ -236,11 +245,11 @@ impl Hupa {
             fs::create_dir_all(p)?;
         }
         copy_all(&self.origin_path, &backup_dir)?;
-        Ok(())
+        Ok(OperationResult::Change)
     }
 
     /// Restore hupa
-    pub fn restore(&self, vars_handler: &VarsHandler) -> Result<()> {
+    pub fn restore(&self, vars_handler: &VarsHandler) -> Result<OperationResult> {
         self.vars_check(vars_handler)?;
         let backup_dir = self.backup_dir();
         if !backup_dir.exists() {
@@ -253,16 +262,16 @@ impl Hupa {
             fs::create_dir_all(p)?;
         }
         copy_all(&backup_dir, &self.origin_path)?;
-        Ok(())
+        Ok(OperationResult::Change)
     }
 
     /// Delete backup
-    pub fn delete_backup(&self) -> Result<()> {
+    pub fn delete_backup(&self) -> Result<OperationResult> {
         let backup_dir = self.backup_dir();
         if backup_dir.exists() {
             remove_all(&backup_dir)?;
         }
-        Ok(())
+        Ok(OperationResult::Change)
     }
 
     /// Delete origin

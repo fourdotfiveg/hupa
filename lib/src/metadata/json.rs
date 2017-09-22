@@ -53,13 +53,15 @@ pub fn json_to_hupas(json: &JsonValue) -> Result<Vec<Hupa>> {
                 needed_vars.push(sub_member.as_str().unwrap().to_string());
             }
         }
-        hupas.push(Hupa::new(name,
-                             desc,
-                             category,
-                             backup_parent,
-                             origin,
-                             autobackup,
-                             needed_vars));
+        hupas.push(Hupa::new(
+            name,
+            desc,
+            category,
+            backup_parent,
+            origin,
+            autobackup,
+            needed_vars,
+        ));
     }
     Ok(hupas)
 }
@@ -71,37 +73,44 @@ mod unit_tests {
     use hupa::Hupa;
 
     fn vec_of_hupas() -> Vec<Hupa> {
-        vec![("test1", vec!["test2"], "/"),
-             ("os", vec!["gentoo"], "/etc/portage"),
-             ("dotfiles", vec!["all"], "/dotfiles")]
-                .into_iter()
-                .map(|(n, c, p)| {
-                    Hupa::new(n,
-                              "",
-                              c.iter().map(|s| s.to_string()).collect(),
-                              "/",
-                              p,
-                              false,
-                              Vec::new())
-                })
-                .collect()
+        vec![
+            ("test1", vec!["test2"], "/"),
+            ("os", vec!["gentoo"], "/etc/portage"),
+            ("dotfiles", vec!["all"], "/dotfiles"),
+        ].into_iter()
+            .map(|(n, c, p)| {
+                Hupa::new(
+                    n,
+                    "",
+                    c.iter().map(|s| s.to_string()).collect(),
+                    "/",
+                    p,
+                    false,
+                    Vec::new(),
+                )
+            })
+            .collect()
     }
 
     fn stringify_hupa(hupa: &Hupa) -> String {
         let mut cat_str = String::new();
         cat_str.push('[');
-        cat_str.push_str(hupa.get_category()
-                             .iter()
-                             .map(|s| format!("\"{}\",", s))
-                             .collect::<String>()
-                             .as_str());
+        cat_str.push_str(
+            hupa.get_category()
+                .iter()
+                .map(|s| format!("\"{}\",", s))
+                .collect::<String>()
+                .as_str(),
+        );
         cat_str.pop();
         cat_str.push(']');
-        format!("{{\"name\":\"{}\",\"desc\":\"{}\",\"category\":{},\"backup_parent\":\"/\",\"origin\":\"{}\",\"autobackup\":false}}",
-                hupa.get_name(),
-                hupa.get_desc(),
-                cat_str,
-                hupa.get_origin().display())
+        format!(
+            "{{\"name\":\"{}\",\"desc\":\"{}\",\"category\":{},\"backup_parent\":\"/\",\"origin\":\"{}\",\"autobackup\":false}}",
+            hupa.get_name(),
+            hupa.get_desc(),
+            cat_str,
+            hupa.get_origin().display()
+        )
 
     }
 

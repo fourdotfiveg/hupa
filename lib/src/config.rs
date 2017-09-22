@@ -21,10 +21,11 @@ pub struct Config {
 
 impl Config {
     /// Default constructor
-    pub fn new<P: AsRef<Path>, Q: AsRef<Path>>(metadata_path: P,
-                                               autobackup_interval: u64,
-                                               vars_path: Q)
-                                               -> Config {
+    pub fn new<P: AsRef<Path>, Q: AsRef<Path>>(
+        metadata_path: P,
+        autobackup_interval: u64,
+        vars_path: Q,
+    ) -> Config {
         Config {
             metadata_path: metadata_path.as_ref().to_path_buf(),
             autobackup_interval: autobackup_interval,
@@ -34,8 +35,10 @@ impl Config {
 
     /// Path to the config
     pub fn config_path() -> Result<PathBuf> {
-        Ok(::app_dirs::app_root(::app_dirs::AppDataType::UserConfig, &APP_INFO)?
-               .join("config"))
+        Ok(
+            ::app_dirs::app_root(::app_dirs::AppDataType::UserConfig, &APP_INFO)?
+                .join("config"),
+        )
     }
 
     /// Read config from readable stream

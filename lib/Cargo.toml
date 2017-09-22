@@ -1,6 +1,6 @@
 [package]
 name = "libhupa"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["fourdotfiveg <fourdotfiveg@gmail.com>"]
 
 [dependencies]

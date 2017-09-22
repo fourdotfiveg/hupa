@@ -1,10 +1,9 @@
 [package]
 name = "hupa"
-version = "0.3.1"
+version = "0.3.2"
 authors = ["fourdotfiveg <fourdotfiveg@gmail.com>"]
 
 [dependencies]
-app_dirs = "1.1"
 clap = "2.23"
 colored = "1.4"
 humansize = "1.0"

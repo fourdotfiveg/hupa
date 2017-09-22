@@ -15,10 +15,8 @@ pub fn restore_subcommand(hupas: Vec<Hupa>, vars: &VarsHandler, sub_m: &ArgMatch
     } else {
         select_hupas(&hupas, "Select hupas to restore")
     };
-    #[cfg(not(unix))]
-    restore(&hupas, vars);
-    #[cfg(unix)]
-    restore(&hupas, vars, sub_m.is_present("ignore_root"));
+    #[cfg(not(unix))] restore(&hupas, vars);
+    #[cfg(unix)] restore(&hupas, vars, sub_m.is_present("ignore_root"));
 }
 
 /// Restore hupas with interface
@@ -36,10 +34,12 @@ pub fn restore(hupas: &[Hupa], vars: &VarsHandler, ignore_root: bool) {
                 args.push(::std::env::args().next().unwrap_or("hupa".to_string()));
                 args.push("restore".to_string());
                 args.push("--config".to_string());
-                args.push(Config::config_path()
-                              .expect("Can't get config path")
-                              .display()
-                              .to_string());
+                args.push(
+                    Config::config_path()
+                        .expect("Can't get config path")
+                        .display()
+                        .to_string(),
+                );
                 for hupa in hupas {
                     args.push(format!("{}/{}", hupa.get_category_str(), hupa.get_name()));
                 }
@@ -56,14 +56,18 @@ pub fn restore(hupas: &[Hupa], vars: &VarsHandler, ignore_root: bool) {
     }
     for hupa in hupas {
         if hupa.needs_root() {
-            println!("{} ignored because he needs root access",
-                     hupa.get_name().yellow());
+            println!(
+                "{} ignored because he needs root access",
+                hupa.get_name().yellow()
+            );
             continue;
         }
-        exec_hupa(hupa,
-                  |h| h.restore(vars),
-                  &PrintOrder::BackupToOrigin,
-                  "Restoring");
+        exec_hupa(
+            hupa,
+            |h| h.restore(vars),
+            &PrintOrder::BackupToOrigin,
+            "Restoring",
+        );
     }
 }
 
@@ -71,9 +75,11 @@ pub fn restore(hupas: &[Hupa], vars: &VarsHandler, ignore_root: bool) {
 #[cfg(not(unix))]
 pub fn restore(hupas: &[Hupa], vars: &VarsHandler) {
     for hupa in hupas {
-        exec_hupa(hupa,
-                  |h| h.restore(vars),
-                  &PrintOrder::BackupToOrigin,
-                  "Restoring");
+        exec_hupa(
+            hupa,
+            |h| h.restore(vars),
+            &PrintOrder::BackupToOrigin,
+            "Restoring",
+        );
     }
 }

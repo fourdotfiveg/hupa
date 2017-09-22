@@ -1,6 +1,5 @@
 //! Tool to backup and restore data
 
-extern crate app_dirs;
 #[macro_use]
 extern crate clap;
 extern crate colored;
@@ -103,18 +102,15 @@ fn main() {
         ).get_matches();
 
     if let Some(u) = get_arg_recursive(&matches, "user") {
-        #[cfg(target_os = "macos")]
-        set_home(u.as_str(), "/Users");
-        #[cfg(all(not(target_os = "macos"), unix))]
-        set_home(u.as_str(), "/home");
+        #[cfg(target_os = "macos")] set_home(u.as_str(), "/Users");
+        #[cfg(all(not(target_os = "macos"), unix))] set_home(u.as_str(), "/home");
     }
 
     let config_default = Config::default();
     let config = match get_arg_recursive(&matches, "config") {
-            Some(s) => Config::read_config_from_path(s),
-            None => Config::read_config(),
-        }
-        .unwrap_or(config_default);
+        Some(s) => Config::read_config_from_path(s),
+        None => Config::read_config(),
+    }.unwrap_or(config_default);
     let vars = if let Ok(mut s) = File::open(&config.vars_path) {
         VarsHandler::read_from_stream(&mut s).unwrap_or(VarsHandler::new(Vec::new()))
     } else {
@@ -191,8 +187,9 @@ fn set_home(user: &str, home: &str) {
     if let Ok(id) = user.parse::<u32>() {
         let name = unsafe { (*libc::getpwuid(id)).pw_name };
         let name = unsafe { ::std::ffi::CString::from_raw(name) };
-        let name = name.into_string()
-            .expect("Cannot convert CString to String");
+        let name = name.into_string().expect(
+            "Cannot convert CString to String",
+        );
         env::set_var("HOME", &format!("/{}/{}", home, name));
     } else {
         env::set_var("HOME", &format!("/{}/{}", home, user));

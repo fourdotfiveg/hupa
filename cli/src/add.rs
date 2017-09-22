@@ -32,18 +32,20 @@ pub fn add_subcommand(mut hupas: Vec<Hupa>, config: &Config, sub_m: &ArgMatches)
             .split_whitespace()
             .map(|s| s.to_string())
             .collect();
-        let hupa =
-            Hupa::new(name.clone(),
-                      desc,
-                      category.split('/').map(|s| s.to_string()).collect(),
-                      Hupa::get_default_backup_parent().expect("Can't get default backup parent"),
-                      origin,
-                      autobackup,
-                      needed_vars);
+        let hupa = Hupa::new(
+            name.clone(),
+            desc,
+            category.split('/').map(|s| s.to_string()).collect(),
+            Hupa::get_default_backup_parent().expect("Can't get default backup parent"),
+            origin,
+            autobackup,
+            needed_vars,
+        );
         for hupa_stored in &hupas {
             if hupa_stored.get_name() == hupa.get_name() &&
-               hupa_stored.get_category() == hupa.get_category() &&
-               hupa_stored.get_backup_parent() == hupa.get_backup_parent() {
+                hupa_stored.get_category() == hupa.get_category() &&
+                hupa_stored.get_backup_parent() == hupa.get_backup_parent()
+            {
                 println!("{}", "This hupa is already set!".red());
                 continue 'main;
             }

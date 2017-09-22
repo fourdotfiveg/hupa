@@ -18,9 +18,11 @@ pub fn clean_subcommand(hupas: &[Hupa], sub_m: &ArgMatches) {
 /// Clean hupas with interface
 pub fn clean(hupas: &[Hupa]) {
     for hupa in hupas {
-        exec_hupa(hupa,
-                  |h| h.delete_backup(),
-                  &PrintOrder::BackupToNull,
-                  "Cleaning");
+        exec_hupa(
+            hupa,
+            |h| h.delete_backup(),
+            &PrintOrder::BackupToNull,
+            "Cleaning",
+        );
     }
 }

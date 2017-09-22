@@ -190,22 +190,25 @@ mod unit_tests {
     use super::*;
 
     fn set_of_hupas() -> Vec<Hupa> {
-        vec![("abc", vec!["test", "hello"]),
-             ("def", vec!["test", "hello"]),
-             ("ghi", vec!["test"]),
-             ("jkl", vec!["test"]),
-             ("mno", vec!["test"])]
-                .into_iter()
-                .map(|(n, v)| {
-                    Hupa::new(n,
-                              "",
-                              v.into_iter().map(|s| s.to_string()).collect(),
-                              "/",
-                              "/",
-                              true,
-                              Vec::new())
-                })
-                .collect()
+        vec![
+            ("abc", vec!["test", "hello"]),
+            ("def", vec!["test", "hello"]),
+            ("ghi", vec!["test"]),
+            ("jkl", vec!["test"]),
+            ("mno", vec!["test"]),
+        ].into_iter()
+            .map(|(n, v)| {
+                Hupa::new(
+                    n,
+                    "",
+                    v.into_iter().map(|s| s.to_string()).collect(),
+                    "/",
+                    "/",
+                    true,
+                    Vec::new(),
+                )
+            })
+            .collect()
     }
 
     fn category_of_test() -> Category {

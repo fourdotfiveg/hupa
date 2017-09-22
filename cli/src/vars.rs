@@ -19,8 +19,9 @@ pub fn vars_subcommand(mut vars: VarsHandler, config: &Config, sub_m: &ArgMatche
     }
     if can_write {
         let mut f = File::create(&config.vars_path).expect("Can't create vars file");
-        vars.write_to_stream(&mut f)
-            .expect("Can't write vars to file");
+        vars.write_to_stream(&mut f).expect(
+            "Can't write vars to file",
+        );
     }
 }
 

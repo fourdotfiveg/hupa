@@ -23,14 +23,12 @@ fn main() {
             (@arg config: -c --config +takes_value "Set config path")
             (@arg metadata: -m --metadata +takes_value "Set metadata path")
             (@arg interval: -i --interval +takes_value "Set backup interval")
-        )
-            .get_matches();
+        ).get_matches();
     let config_default = Config::default();
     let mut config = match matches.value_of("config") {
-            Some(s) => Config::read_config_from_path(s),
-            None => Config::read_config(),
-        }
-        .unwrap_or(config_default);
+        Some(s) => Config::read_config_from_path(s),
+        None => Config::read_config(),
+    }.unwrap_or(config_default);
     let mut vars = if let Ok(mut s) = File::open(&config.vars_path) {
         VarsHandler::read_from_stream(&mut s).unwrap_or(VarsHandler::new(Vec::new()))
     } else {
@@ -77,8 +75,11 @@ fn main() {
                 if last_change_vars != change_vars {
                     let _ = write!(file, "[{}] Found new change in vars...", get_time_str());
                     vars = if let Ok(mut s) = File::open(&config.vars_path) {
-                        VarsHandler::read_from_stream(&mut s)
-                            .unwrap_or(VarsHandler::new(Vec::new()))
+                        VarsHandler::read_from_stream(&mut s).unwrap_or(
+                            VarsHandler::new(
+                                Vec::new(),
+                            ),
+                        )
                     } else {
                         VarsHandler::new(Vec::new())
                     };
@@ -89,25 +90,43 @@ fn main() {
                         continue;
                     }
                     match hupa.backup(&vars) {
-                        Ok(_) => {
-                            let _ = write!(file,
-                                           "[{}] {} is backed up\n",
-                                           get_time_str(),
-                                           hupa.get_name());
+                        Ok(opres) => {
+                            let _ = match opres {
+                                OperationResult::Change => {
+                                    write!(
+                                        file,
+                                        "[{}] {} is backed up\n",
+                                        get_time_str(),
+                                        hupa.get_name()
+                                    )
+                                }
+                                OperationResult::NoChange => {
+                                    write!(
+                                        file,
+                                        "[{}] {} was already up to date\n",
+                                        get_time_str(),
+                                        hupa.get_name()
+                                    )
+                                }
+                            };
                         }
                         Err(e) => {
-                            let _ = write!(file,
-                                           "[{}] {} has an error during backup: {}\n",
-                                           get_time_str(),
-                                           hupa.get_name(),
-                                           e);
+                            let _ = write!(
+                                file,
+                                "[{}] {} has an error during backup: {}\n",
+                                get_time_str(),
+                                hupa.get_name(),
+                                e
+                            );
                         }
                     }
                 }
-                let _ = write!(file,
-                               "[{}] Waiting {} secs...\n",
-                               get_time_str(),
-                               config.autobackup_interval);
+                let _ = write!(
+                    file,
+                    "[{}] Waiting {} secs...\n",
+                    get_time_str(),
+                    config.autobackup_interval
+                );
                 ::std::thread::sleep(Duration::from_secs(config.autobackup_interval));
             }
         }
@@ -122,11 +141,13 @@ fn get_last_change<P: AsRef<Path>>(path: P) -> SystemTime {
 
 fn get_time_str() -> String {
     let time = time::now();
-    format!("{:02}/{:02}/{}-{:02}:{:02}:{:02}",
-            time.tm_mon + 1,
-            time.tm_mday,
-            time.tm_year + 1900,
-            time.tm_hour,
-            time.tm_min,
-            time.tm_sec)
+    format!(
+        "{:02}/{:02}/{}-{:02}:{:02}:{:02}",
+        time.tm_mon + 1,
+        time.tm_mday,
+        time.tm_year + 1900,
+        time.tm_hour,
+        time.tm_min,
+        time.tm_sec
+    )
 }

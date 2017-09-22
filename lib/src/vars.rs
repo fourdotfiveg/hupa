@@ -24,8 +24,7 @@ impl VarsHandler {
 
     /// Get vars file's path
     pub fn get_default_path() -> Result<PathBuf> {
-        Ok(app_root(AppDataType::UserConfig, &APP_INFO)?
-               .join("vars"))
+        Ok(app_root(AppDataType::UserConfig, &APP_INFO)?.join("vars"))
     }
 
     /// Read from buffer
@@ -201,13 +200,14 @@ mod unit_tests {
     use std::io::Cursor;
 
     fn set_of_var() -> Vec<Var> {
-        vec![("Hello", true),
-             ("World", true),
-             ("he", false),
-             ("yo", false)]
-                .into_iter()
-                .map(|s| (s.0.to_string(), s.1))
-                .collect()
+        vec![
+            ("Hello", true),
+            ("World", true),
+            ("he", false),
+            ("yo", false),
+        ].into_iter()
+            .map(|s| (s.0.to_string(), s.1))
+            .collect()
     }
 
     fn vars_string() -> String {

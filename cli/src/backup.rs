@@ -18,9 +18,11 @@ pub fn backup_subcommand(hupas: &[Hupa], vars: &VarsHandler, sub_m: &ArgMatches)
 /// Backup hupas with interface
 pub fn backup(hupas: &[Hupa], vars: &VarsHandler) {
     for hupa in hupas {
-        exec_hupa(hupa,
-                  |h| h.backup(vars),
-                  &PrintOrder::OriginToBackup,
-                  "Backing up");
+        exec_hupa(
+            hupa,
+            |h| h.backup(vars),
+            &PrintOrder::OriginToBackup,
+            "Backing up",
+        );
     }
 }
