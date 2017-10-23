@@ -47,8 +47,6 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 };
 
 fn main() {
-    // TODO exclude by category
-    // TODO sort by category
     let matches = clap_app!(
         hupa =>
             (version: crate_version!())
