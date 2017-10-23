@@ -17,7 +17,7 @@ mod add;
 mod remove;
 mod modify;
 mod config;
-mod print;
+mod show;
 mod backup;
 mod restore;
 mod clean;
@@ -27,7 +27,7 @@ use add::*;
 use remove::*;
 use modify::*;
 use config::*;
-use print::*;
+use show::*;
 use backup::*;
 use restore::*;
 use clean::*;
@@ -49,57 +49,64 @@ const DEFAULT_FSO: FileSizeOpts = FileSizeOpts {
 fn main() {
     // TODO exclude by category
     // TODO sort by category
-    let matches = clap_app!(hupa =>
-        (version: crate_version!())
-        (author: "Bastien Badzioch <fourdotfiveg@gmail.com>")
-        (about: "Hupa is a tool to backup and restore data")
-        (setting: AppSettings::SubcommandRequiredElseHelp)
-        (@arg config: -c --config +global +takes_value "Set config path")
-        (@arg metadata: --metadata +global +takes_value "Set metadata path")
-        (@arg user: --("as-user") +global +takes_value "Run hupa as another user, only for unix")
-        (@subcommand add =>
-            (about: "Add a new hupa")
-            (@arg count: -n --count +takes_value "Set the number of hupa to add"))
-        (@subcommand remove =>
-            (about: "Remove one or multiple hupas")
-            (aliases: &["rm", "del"])
-            (@arg hupa: +takes_value +multiple "Hupa(s) to remove"))
-        (@subcommand modify =>
-            (about: "Modify parameter of an hupa")
-            (@arg hupa: +takes_value +multiple "Hupa(s) to modify"))
-        (@subcommand config =>
-            (about: "Modify config"))
-        (@subcommand backup =>
-            (about: "Backup hupa(s)")
-            (@arg all: -a --all conflicts_with[hupa] "Backup all hupas")
-            (@arg hupa: +takes_value +multiple "Hupa(s) to backup"))
-        (@subcommand restore =>
-            (about: "Restore hupa(s)")
-            (@arg all: -a --all conflicts_with[hupa] "Restore all hupas")
-            (@arg hupa: +takes_value +multiple "Hupa(s) to restore")
-            (@arg ignore_root: -i --("ignore-root") "Ignore hupas that need root access, only for unix"))
-        (@subcommand generate =>
-            (about: "Generate an archive of all hupas")
-            (@arg format: -f --format +takes_value possible_value[tar zip] "File format to use for achive")
-            (@arg output: -o --output +takes_value "Output directory/file of the created archive"))
-        (@subcommand unpack =>
-            (about: "Unpack an hupa archive")
-            (@arg archive: +required +takes_value "Path to the archive"))
-        (@subcommand print =>
-            (about: "Print list of all hupas")
-            (@arg size: -s --size "Show files sizes"))
-        (@subcommand clean =>
-            (about: "Clean hupa(s)")
-            (@arg all: -a --all "Clean all hupas")
-            (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))
-        (@subcommand vars => 
-            (about: "Manipulate vars")
+    let matches = clap_app!(
+        hupa =>
+            (version: crate_version!())
+            (author: "Bastien Badzioch <fourdotfiveg@gmail.com>")
+            (about: "Hupa is a tool to backup and restore data")
             (setting: AppSettings::SubcommandRequiredElseHelp)
-            (@subcommand add => (about: "Add var(s)"))
-            (@subcommand remove => (about: "Remove var(s)"))
-            (@subcommand modify => (about: "Modify var(s)"))
-            (@subcommand list => (about: "List var(s)")))
-        ).get_matches();
+            (@arg config: -c --config +global +takes_value "Set config path")
+            (@arg metadata: --metadata +global +takes_value "Set metadata path")
+            (@arg user: --("as-user") +global +takes_value "Run hupa as another user, only for unix")
+            (@subcommand add =>
+             (about: "Add a new hupa")
+             (@arg count: -n --count +takes_value "Set the number of hupa to add"))
+            (@subcommand remove =>
+             (about: "Remove one or multiple hupas")
+             (aliases: &["rm", "del"])
+             (@arg hupa: +takes_value +multiple "Hupa(s) to remove"))
+            (@subcommand modify =>
+             (about: "Modify parameter of an hupa")
+             (@arg hupa: +takes_value +multiple "Hupa(s) to modify"))
+            (@subcommand config =>
+             (about: "Modify config"))
+            (@subcommand backup =>
+             (about: "Backup hupa(s)")
+             (@arg all: -a --all conflicts_with[hupa] "Backup all hupas")
+             (@arg hupa: +takes_value +multiple "Hupa(s) to backup"))
+            (@subcommand restore =>
+             (about: "Restore hupa(s)")
+             (@arg all: -a --all conflicts_with[hupa] "Restore all hupas")
+             (@arg hupa: +takes_value +multiple "Hupa(s) to restore")
+             (@arg ignore_root: -i --("ignore-root") "Ignore hupas that need root access, only for unix"))
+            (@subcommand generate =>
+             (about: "Generate an archive of all hupas")
+             (@arg format: -f --format +takes_value possible_value[tar zip] "File format to use for achive")
+             (@arg output: -o --output +takes_value "Output directory/file of the created archive"))
+            (@subcommand unpack =>
+             (about: "Unpack an hupa archive")
+             (@arg archive: +required +takes_value "Path to the archive"))
+            (@subcommand list =>
+             (about: "List all hupas by category")
+             (@arg size: -s --size "Show files sizes")
+             (@arg category: +takes_value +multiple "Categories to list"))
+            (@subcommand show =>
+             (about: "Show hupa(s)")
+             (@arg size: -s --size "Show files sizes")
+             (@arg hupa: +takes_value +multiple "Hupa to show")
+             (@arg all: -a --all conflicts_with[hupa] "Show all hupas"))
+            (@subcommand clean =>
+             (about: "Clean hupa(s)")
+             (@arg all: -a --all "Clean all hupas")
+             (@arg hupa: +takes_value +multiple "Hupa(s) to clean"))
+            (@subcommand vars => 
+             (about: "Manipulate vars")
+             (setting: AppSettings::SubcommandRequiredElseHelp)
+             (@subcommand add => (about: "Add var(s)"))
+             (@subcommand remove => (about: "Remove var(s)"))
+             (@subcommand modify => (about: "Modify var(s)"))
+             (@subcommand list => (about: "List var(s)")))
+    ).get_matches();
 
     if let Some(u) = get_arg_recursive(&matches, "user") {
         #[cfg(target_os = "macos")] set_home(u.as_str(), "/Users");
@@ -139,8 +146,11 @@ fn main() {
         ("config", _) => {
             config_subcommand(config);
         }
-        ("print", Some(sub_m)) => {
-            print_subcommand(hupas, sub_m);
+        ("list", Some(sub_m)) => {
+            list_subcommand(hupas, sub_m);
+        }
+        ("show", Some(sub_m)) => {
+            show_subcommand(hupas, sub_m);
         }
         ("backup", Some(sub_m)) => {
             backup_subcommand(&hupas, &vars, sub_m);
